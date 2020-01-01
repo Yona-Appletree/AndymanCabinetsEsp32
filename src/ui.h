@@ -7,39 +7,27 @@
 
 #include <cstdint>
 #include <FastLED.h>
+#include <color.h>
+#include <mode.h>
 
 #define UI_LED_COUNT (16)
 #define UI_LED_PIN 32
 
 static CRGB g_uiLeds[UI_LED_COUNT];
 
-enum ProgramMode {
-	OFF,
-	ALL_SOLID,
-	FADE_SINGLE,
-	FADE_EACH,
-	TWINKLE_FADE
-};
-
-enum ColorMode {
-	RAINBOW,
-	SUNSET,
-	NATURE,
-	FIRE,
-	PARTY,
-	CHANGING
-};
-
 static struct {
 	ProgramMode programMode;
 	ColorMode colorMode;
-	uint8_t brightness;
-	uint8_t speed;
-} g_uiState;
+	double brightness;
+	double speed;
+} g_uiState = {
+	.programMode = NOISE,
+	.colorMode = RAINBOW,
+	.brightness = 1.0,
+	.speed = 1.0
+};
 
 void uiSetup();
 void uiLoop();
-
-
 
 #endif //ANDYMANCABINETSESP32_UI_H

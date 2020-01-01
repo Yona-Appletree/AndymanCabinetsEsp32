@@ -6,16 +6,19 @@
 
 ## USB
 
-Upload & monitor command:
+Upload & Monitor:
 
     pio run -e usb -t upload -t monitor
+    
+Monitor:
 
-
+    pio run -e usb -t monitor
+    
 ## OTA
 
 PlatformIO OTA Info: https://docs.platformio.org/en/latest/platforms/espressif32.html#over-the-air-ota-update
 
-Upload command:
+Upload:
 
     pio run -e ota -t upload
 
