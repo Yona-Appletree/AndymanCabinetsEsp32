@@ -5,18 +5,43 @@
 #include "renderer.h"
 #include "ui.h"
 
+static std::vector<CabinetRing> cabinetRings = {
+	CabinetRing {
+		.host = "192.168.1.10",
+		.cabinets = {
+			CabinetInfo(70, TOP_RIGHT, true, 1),
+			CabinetInfo(70, TOP_LEFT, true, 2),
+			CabinetInfo(70, TOP_RIGHT, true, 3),
+			CabinetInfo(70, TOP_LEFT, true, 4),
+			CabinetInfo(70, TOP_RIGHT, true, 5),
+			CabinetInfo(70, TOP_LEFT, true, 6),
+			CabinetInfo(70, TOP_RIGHT, true, 7),
+			CabinetInfo(70, TOP_LEFT, true, 8),
+		}
+	},
+
+	CabinetRing {
+		.host = "192.168.1.11",
+		.cabinets = {
+			CabinetInfo(70, TOP_RIGHT, true, 1),
+			CabinetInfo(70, TOP_LEFT, true, 2),
+			CabinetInfo(70, TOP_RIGHT, true, 3),
+			CabinetInfo(70, TOP_LEFT, true, 4),
+		}
+	},
+};
+
+
 void rendererSetup() {
 
 }
 
 void rendererLoop() {
 	auto fun = functionForMode(g_uiState.programMode);
-	auto colorFun = colorFunctionForMode(g_uiState.colorMode);
 
 	for (CabinetRing& ring : cabinetRings) {
 		ring.computeColors(
 			fun,
-			colorFun,
 			millis(),
 			g_uiState.speed
 		);
@@ -116,7 +141,6 @@ CabinetRingLedPos CabinetRing::ledPosInRing(int cabinetIndex, int ledIndex) cons
 
 void CabinetRing::computeColors(
 	const TLedColorFunction& ledColorFunction,
-	const TColorFunction& colorFunction,
 	uint64_t millis,
 	double speed
 ) {
@@ -125,7 +149,6 @@ void CabinetRing::computeColors(
 
 		for (int ledIndex=0; ledIndex<cabinet.ledCount; ledIndex++) {
 			cabinet.buffer[ledIndex] = ledColorFunction({
-				.colorFunction = colorFunction,
 				.ring = *this,
 				.cabinetIndex = cabinetIndex,
 				.ledIndex = ledIndex,

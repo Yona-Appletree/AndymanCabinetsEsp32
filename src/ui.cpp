@@ -5,6 +5,15 @@
 #include "ui.h"
 #include <FastLED.h>
 
+static CRGB g_uiLeds[UI_LED_COUNT];
+
+UiState g_uiState = {
+	.programMode = NOISE,
+	.colorMode = RAINBOW,
+	.brightness = 1.0,
+	.speed = 1.0
+};
+
 int readRotarySwitch(
 	int pin,
 	int count
@@ -27,31 +36,30 @@ void uiLoop() {
 
 void readInputs() {
 	// Update Speed
-	double newSpeed = analogRead(UI_PIN_SPEED) / 4096.0;
+	double newSpeed = analogRead(UI_PIN_BRIGHTNESS) / 4096.0;
 	if (abs(newSpeed - g_uiState.speed) > 0.01)
 		g_uiState.speed = newSpeed;
 
 	// Update Brightness
-	double newBrightness = analogRead(UI_PIN_BRIGHTNESS) / 4096.0;
+	double newBrightness = analogRead(UI_PIN_SPEED) / 4096.0;
 	if (abs(newBrightness - g_uiState.brightness) > 0.01)
 		g_uiState.brightness = newBrightness;
 
 	// Update Program Mode
-	g_uiState.programMode = static_cast<ProgramMode>(readRotarySwitch(UI_PIN_COLOR, 6));
+	g_uiState.programMode = static_cast<ProgramMode>(readRotarySwitch(UI_PIN_MODE, 6));
 
 	// Update Color Mode
-	g_uiState.colorMode = static_cast<ColorMode>(readRotarySwitch(UI_PIN_MODE, 6));
+	g_uiState.colorMode = static_cast<ColorMode>(readRotarySwitch(UI_PIN_COLOR, 6));
 }
 
 void updateUiLeds() {
 	FastLED.setBrightness(uint8_t(g_uiState.brightness * 32));
 
-	auto colorFunc = colorFunctionForMode(g_uiState.colorMode);
-	int period = 500 + (1 - g_uiState.speed) * 3000;
+	int period = 500 + (1 - g_uiState.speed) * 8000;
 	auto time = double(millis() % period) / period;
 
 	for (int i=0; i<UI_LED_COUNT; i++) {
-		g_uiLeds[i] = colorFunc((time + double(i) / UI_LED_COUNT));
+		g_uiLeds[i] = colorFor((time + double(i) / UI_LED_COUNT));
 	}
 
 	FastLED.show();

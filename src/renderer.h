@@ -45,7 +45,6 @@ struct CabinetInfo;
 struct CabinetRing;
 
 struct TLedColorFunctionProps {
-	TColorFunction colorFunction;
 	const CabinetRing& ring;
 	int cabinetIndex;
 	int ledIndex;
@@ -100,37 +99,9 @@ struct CabinetRing {
 
 	void computeColors(
 		const TLedColorFunction& ledColorFunction,
-		const TColorFunction& colorFunction,
 		uint64_t millis,
 		double speed
 	);
 };
-
-static std::vector<CabinetRing> cabinetRings = {
-	CabinetRing {
-		.host = "192.168.1.10",
-		.cabinets = {
-			CabinetInfo(70, TOP_RIGHT, true, 1),
-			CabinetInfo(70, TOP_LEFT, true, 2),
-			CabinetInfo(70, TOP_RIGHT, true, 3),
-			CabinetInfo(70, TOP_LEFT, true, 4),
-			CabinetInfo(70, TOP_RIGHT, true, 5),
-			CabinetInfo(70, TOP_LEFT, true, 6),
-			CabinetInfo(70, TOP_RIGHT, true, 7),
-			CabinetInfo(70, TOP_LEFT, true, 8),
-		}
-	},
-
-	CabinetRing {
-		.host = "192.168.1.11",
-		.cabinets = {
-			CabinetInfo(70, TOP_RIGHT, true, 1),
-			CabinetInfo(70, TOP_LEFT, true, 2),
-			CabinetInfo(70, TOP_RIGHT, true, 3),
-			CabinetInfo(70, TOP_LEFT, true, 4),
-		}
-	},
-};
-
 
 #endif //ANDYMANCABINETSESP32_RENDERER_H

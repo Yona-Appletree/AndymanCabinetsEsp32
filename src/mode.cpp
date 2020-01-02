@@ -12,13 +12,13 @@ CRGB modeOff(const TLedColorFunctionProps& props) {
 CRGB modeAllSolid(const TLedColorFunctionProps& props) {
 	double time = fmod(double(props.millis) / 1000, (1 - props.speed)*10);
 
-	return props.colorFunction(time);
+	return colorFor(time);
 }
 
 CRGB modeFadeSingle(const TLedColorFunctionProps& props) {
 	double time = fmod(double(props.millis) / 1000, (1 - props.speed)*10);
 
-	return props.colorFunction(
+	return colorFor(
 		time + double(props.cabinetIndex) / props.ring.cabinets.size()
 	);
 }
@@ -26,7 +26,7 @@ CRGB modeFadeSingle(const TLedColorFunctionProps& props) {
 CRGB modeFadeEach(const TLedColorFunctionProps& props) {
 	double time = fmod(double(props.millis) / 1000, (1 - props.speed)*10);
 
-	return props.colorFunction(
+	return colorFor(
 		time + double(props.ledIndex) / props.ring.cabinets[props.cabinetIndex].ledCount
 	);
 }
@@ -44,7 +44,7 @@ CRGB modeNoise(const TLedColorFunctionProps& props) {
 	double x = cos(ledPos.angle) * 10;
 	double y = sin(ledPos.angle) * 10;
 
-	return props.colorFunction(
+	return colorFor(
 		inoise16(
 			x * 256,
 			y * 256,
