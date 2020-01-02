@@ -53,18 +53,6 @@ Wire Wire Line
 	9200 1800 9200 1900
 Wire Wire Line
 	9200 2000 9050 2000
-Connection ~ 9300 1200
-$Comp
-L power:+5V #PWR01
-U 1 1 5DAF18F1
-P 9300 1200
-F 0 "#PWR01" H 9300 1050 50  0001 C CNN
-F 1 "+5V" H 9315 1373 50  0000 C CNN
-F 2 "" H 9300 1200 50  0001 C CNN
-F 3 "" H 9300 1200 50  0001 C CNN
-	1    9300 1200
-	1    0    0    -1  
-$EndComp
 Connection ~ 9300 2700
 $Comp
 L power:GNDD #PWR03
@@ -217,18 +205,6 @@ Wire Wire Line
 	7100 1700 7100 1800
 Wire Wire Line
 	7100 1900 6950 1900
-Connection ~ 7200 1100
-$Comp
-L power:+5V #PWR0101
-U 1 1 5DB0A0A2
-P 7200 1100
-F 0 "#PWR0101" H 7200 950 50  0001 C CNN
-F 1 "+5V" H 7215 1273 50  0000 C CNN
-F 2 "" H 7200 1100 50  0001 C CNN
-F 3 "" H 7200 1100 50  0001 C CNN
-	1    7200 1100
-	1    0    0    -1  
-$EndComp
 Connection ~ 7200 2600
 $Comp
 L power:GNDD #PWR0102
@@ -363,17 +339,6 @@ F 3 "" H 8550 1250 50  0001 C CNN
 	1    8550 1250
 	1    0    0    -1  
 $EndComp
-$Comp
-L power:+5V #PWR0105
-U 1 1 5DB23477
-P 8550 950
-F 0 "#PWR0105" H 8550 800 50  0001 C CNN
-F 1 "+5V" H 8565 1123 50  0000 C CNN
-F 2 "" H 8550 950 50  0001 C CNN
-F 3 "" H 8550 950 50  0001 C CNN
-	1    8550 950 
-	1    0    0    -1  
-$EndComp
 Text Label 8050 1100 0    50   ~ 0
 BRIGHT
 Wire Wire Line
@@ -398,17 +363,6 @@ F 1 "GNDD" H 6454 895 50  0000 C CNN
 F 2 "" H 6450 1050 50  0001 C CNN
 F 3 "" H 6450 1050 50  0001 C CNN
 	1    6450 1050
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+5V #PWR0107
-U 1 1 5DB2A220
-P 6450 750
-F 0 "#PWR0107" H 6450 600 50  0001 C CNN
-F 1 "+5V" H 6465 923 50  0000 C CNN
-F 2 "" H 6450 750 50  0001 C CNN
-F 3 "" H 6450 750 50  0001 C CNN
-	1    6450 750 
 	1    0    0    -1  
 $EndComp
 Text Label 5950 900  0    50   ~ 0
@@ -1417,4 +1371,50 @@ F 3 "" H 10400 4050 50  0001 C CNN
 	1    10400 4050
 	1    0    0    -1  
 $EndComp
+$Comp
+L AndyCabinets-rescue:+3.3V-ESP32-PoE-ISO_Rev_C #PWR?
+U 1 1 5E0E7FA8
+P 8550 950
+F 0 "#PWR?" H 8550 800 50  0001 C CNN
+F 1 "+3.3V" H 8565 1078 50  0000 L CNN
+F 2 "" H 8550 950 60  0000 C CNN
+F 3 "" H 8550 950 60  0000 C CNN
+	1    8550 950 
+	1    0    0    -1  
+$EndComp
+$Comp
+L AndyCabinets-rescue:+3.3V-ESP32-PoE-ISO_Rev_C #PWR?
+U 1 1 5E0F28C5
+P 6450 750
+F 0 "#PWR?" H 6450 600 50  0001 C CNN
+F 1 "+3.3V" H 6465 878 50  0000 L CNN
+F 2 "" H 6450 750 60  0000 C CNN
+F 3 "" H 6450 750 60  0000 C CNN
+	1    6450 750 
+	1    0    0    -1  
+$EndComp
+$Comp
+L AndyCabinets-rescue:+3.3V-ESP32-PoE-ISO_Rev_C #PWR?
+U 1 1 5E0F39DA
+P 7200 1100
+F 0 "#PWR?" H 7200 950 50  0001 C CNN
+F 1 "+3.3V" H 7215 1228 50  0000 L CNN
+F 2 "" H 7200 1100 60  0000 C CNN
+F 3 "" H 7200 1100 60  0000 C CNN
+	1    7200 1100
+	1    0    0    -1  
+$EndComp
+Connection ~ 7200 1100
+$Comp
+L AndyCabinets-rescue:+3.3V-ESP32-PoE-ISO_Rev_C #PWR?
+U 1 1 5E0F46C5
+P 9300 1200
+F 0 "#PWR?" H 9300 1050 50  0001 C CNN
+F 1 "+3.3V" H 9315 1328 50  0000 L CNN
+F 2 "" H 9300 1200 60  0000 C CNN
+F 3 "" H 9300 1200 60  0000 C CNN
+	1    9300 1200
+	1    0    0    -1  
+$EndComp
+Connection ~ 9300 1200
 $EndSCHEMATC
