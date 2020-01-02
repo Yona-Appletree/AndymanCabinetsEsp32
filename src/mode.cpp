@@ -3,7 +3,6 @@
 //
 
 #include "mode.h"
-#include "color.h"
 #include <FastLED.h>
 
 CRGB modeOff(const TLedColorFunctionProps& props) {
@@ -49,7 +48,7 @@ CRGB modeNoise(const TLedColorFunctionProps& props) {
 		inoise16(
 			x * 256,
 			y * 256,
-			(ledPos.z + double(props.millis) / 10 * props.speed) * 256
+			(ledPos.z + double(props.millis * 10) * props.speed)
 		) / 65536.0
 	);
 }

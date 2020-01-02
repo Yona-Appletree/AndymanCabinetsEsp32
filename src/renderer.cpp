@@ -22,12 +22,12 @@ void rendererLoop() {
 		);
 	}
 
-	Serial.printf(
-		"%d %d %d \n",
-		cabinetRings[0].cabinets[0].buffer[0].r,
-		cabinetRings[0].cabinets[0].buffer[0].g,
-		cabinetRings[0].cabinets[0].buffer[0].b
-	);
+//	Serial.printf(
+//		"%d %d %d \n",
+//		cabinetRings[0].cabinets[0].buffer[0].r,
+//		cabinetRings[0].cabinets[0].buffer[0].g,
+//		cabinetRings[0].cabinets[0].buffer[0].b
+//	);
 }
 
 

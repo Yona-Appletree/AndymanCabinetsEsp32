@@ -22,7 +22,7 @@ void loop()
 	rendererLoop();
 
 	auto duration = millis() - start;
-	Serial.printf("Duration: %dms\n\n", (int) duration);
+	//Serial.printf("Duration: %dms\n\n", (int) duration);
 
 	if (duration < 30) {
 		delay(30 - duration);

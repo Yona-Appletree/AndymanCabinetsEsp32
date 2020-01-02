@@ -11,7 +11,13 @@
 #include <mode.h>
 
 #define UI_LED_COUNT (16)
-#define UI_LED_PIN 32
+#define UI_PIN_LED 32
+
+#define UI_PIN_MODE       34
+#define UI_PIN_COLOR      39
+
+#define UI_PIN_BRIGHTNESS 33
+#define UI_PIN_SPEED      35
 
 static CRGB g_uiLeds[UI_LED_COUNT];
 
