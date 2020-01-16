@@ -1,4 +1,4 @@
-16859143593082249
+16860721115655249
 6N137
 DIP762W50P254L977H451Q8
 
@@ -74843,6 +74843,13 @@ OLED_0.96in_i2c_daughter
 0
 8
 4
+YonaFootprints
+Potentiometer_TT_P0915N_Flush
+http://www.ttelectronics.com/sites/default/files/download-files/Datasheet_PanelPot_P09xSeries.pdf
+potentiometer vertical TT P0915N single
+0
+5
+3
 YonaFootprints
 RM106772BCB
 
