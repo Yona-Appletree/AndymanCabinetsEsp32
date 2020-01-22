@@ -13,6 +13,15 @@ void colorSetup();
 void colorLoop();
 
 CRGB colorFor(double value);
+CRGB colorFor8(uint8_t value);
+CRGB colorFor(
+	double center,
+	double width
+);
+CRGB colorFor8(
+	double center,
+	double width
+);
 
 enum ColorMode {
 	RAINBOW,
@@ -22,5 +31,7 @@ enum ColorMode {
 	PARTY,
 	CHANGING
 };
+
+const auto ColorModeCount = 6;
 
 #endif //ANDYMANCABINETSESP32_COLOR_H

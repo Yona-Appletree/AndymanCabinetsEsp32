@@ -5,6 +5,7 @@
 #include "color.h"
 #include "ui.h"
 #include "presetPalettes.h"
+#include "FastLED.h"
 #include <colorpalettes.h>
 
 CRGBPalette32 staticPalette;
@@ -42,7 +43,43 @@ void colorLoop() {
 }
 
 CRGB colorFor(double value) {
-	return ColorFromPalette(* g_currentPalette, uint8_t(triangle(value) * 256));
+	return colorFor8(value * 255);
+}
+
+CRGB colorFor8(uint8_t value) {
+	return ColorFromPalette(* g_currentPalette, triwave8(value));
+}
+
+CRGB colorFor8(
+	uint8_t center,
+	uint8_t width
+) {
+	if (width == 0 || width == 1) {
+		return colorFor8(center);
+	}
+
+	uint32_t r = 0;
+	uint32_t g = 0;
+	uint32_t b = 0;
+
+	for (int i=center - width/2; i<=center + width/2; i++) {
+		auto c = colorFor8(i);
+		r += c.r;
+		g += c.g;
+		b += c.b;
+	}
+
+	return CRGB(r/width, g/width, b/width);
+}
+
+CRGB colorFor(
+	double center,
+	double width
+) {
+	return colorFor8(
+		uint8_t(center * 255.0),
+		uint8_t(width * 255.0)
+	);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,8 +105,8 @@ void updateNature() {
 
 	static int blendCounter = 5;
 
-	if (millis() - lastSwitchMs > uint32_t (1000 + (1 - g_uiState.speed) * 10000)) {
-		lastSwitchMs = millis();
+	if (g_uiState.time - lastSwitchMs > uint32_t (1000 + (1 - g_uiState.speed) * 10000)) {
+		lastSwitchMs = g_uiState.time;
 
 		switch (random8() % 4) {
 			case 0: targetPalette = CloudColors_p; break;
@@ -95,13 +132,13 @@ void updateParty() {
 }
 
 void updateChanging() {
-	static uint32_t lastSwitchMs = millis();
+	static uint32_t lastSwitchMs = g_uiState.time;
 
 	static CRGBPalette32 currentPalette( palettes[ random8() % paletteCount ] );
 	static CRGBPalette32 targetPalette( palettes[ random8() % paletteCount ] );
 
-	if (millis() - lastSwitchMs > uint32_t (1000 + (1 - g_uiState.speed) * 10000)) {
-		lastSwitchMs = millis();
+	if (g_uiState.time - lastSwitchMs > 3000) {
+		lastSwitchMs = g_uiState.time;
 		targetPalette = palettes[random8() % paletteCount];
 	}
 

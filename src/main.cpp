@@ -13,7 +13,6 @@ void setup()
 	uiSetup();
 	colorSetup();
 	networkSetup();
-	rendererSetup();
 
 	xTaskCreatePinnedToCore(
 		core2loop, /* Function to implement the task */
@@ -47,6 +46,13 @@ void loop()
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 void core2loop(void * data) {
+	// Wait for network
+	while (! g_ethConnected) {
+		delay(100);
+	}
+
+	rendererSetup();
+
 	while (true) {
 		auto start = millis();
 

@@ -9,3 +9,5 @@
 
 void networkSetup();
 void networkLoop();
+
+extern bool g_ethConnected;

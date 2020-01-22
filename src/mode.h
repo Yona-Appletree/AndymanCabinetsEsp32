@@ -17,6 +17,7 @@ enum ProgramMode {
 	TWINKLE_FADE,
 	NOISE
 };
+const auto ProgramModeCount = 6;
 
 CRGB modeOff(const TLedColorFunctionProps& props);
 CRGB modeAllSolid(const TLedColorFunctionProps& props);

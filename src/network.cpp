@@ -13,7 +13,7 @@
 #define HOSTNAME "andycabinets"
 
 void handleNetworkEvent(WiFiEvent_t event);
-static bool g_ethConnected = false;
+bool g_ethConnected = false;
 
 // Web server
 WebServer server(80);

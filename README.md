@@ -21,6 +21,10 @@ PlatformIO OTA Info: https://docs.platformio.org/en/latest/platforms/espressif32
 Upload:
 
     pio run -e ota -t upload
+    
+Upload and Monitor (with USB connected):
+
+    pio run -e ota -t upload && pio run -e usb -t monitor
 
 
 ## Notes

@@ -4,19 +4,20 @@
 
 #include "mode.h"
 #include <FastLED.h>
+#include <noise.h>
 
 CRGB modeOff(const TLedColorFunctionProps& props) {
 	return CRGB::Black;
 }
 
 CRGB modeAllSolid(const TLedColorFunctionProps& props) {
-	double time = fmod(double(props.millis) / 1000, (1 - props.speed)*10);
+	double time = double(props.millis % 3000) / 3000;
 
 	return colorFor(time);
 }
 
 CRGB modeFadeSingle(const TLedColorFunctionProps& props) {
-	double time = fmod(double(props.millis) / 1000, (1 - props.speed)*10);
+	double time = double(props.millis % 3000) / 3000;
 
 	return colorFor(
 		time + double(props.cabinetIndex) / props.ring.cabinets.size()
@@ -24,10 +25,14 @@ CRGB modeFadeSingle(const TLedColorFunctionProps& props) {
 }
 
 CRGB modeFadeEach(const TLedColorFunctionProps& props) {
-	double time = fmod(double(props.millis) / 1000, (1 - props.speed)*10);
+	double time = double(props.millis % 3000) / 3000;
+
+	auto cabinetFrac = double(props.cabinetIndex) / props.ring.cabinets.size();
+	auto ledFrac = double(props.ledIndex) / props.ring.cabinets[props.cabinetIndex].ledCount;
 
 	return colorFor(
-		time + double(props.ledIndex) / props.ring.cabinets[props.cabinetIndex].ledCount
+		time + ledFrac + cabinetFrac,
+		1.0 / props.ring.cabinets[props.cabinetIndex].ledCount
 	);
 }
 
@@ -36,19 +41,18 @@ CRGB modeTwinkleFade(const TLedColorFunctionProps& props) {
 }
 
 CRGB modeNoise(const TLedColorFunctionProps& props) {
-	auto ledPos = props.ring.ledPosInRing(
-		props.cabinetIndex,
-		props.ledIndex
-	);
+	auto time = double(props.millis % 10000) / 10000;
 
-	double x = cos(ledPos.angle) * 10;
-	double y = sin(ledPos.angle) * 10;
+	auto cabinetFrac = double(props.cabinetIndex) / props.ring.cabinets.size();
+	auto ledFrac = double(props.ledIndex) / props.ring.cabinets[props.cabinetIndex].ledCount;
 
 	return colorFor(
-		inoise16(
-			x * 256,
-			y * 256,
-			(ledPos.z + double(props.millis * 10) * props.speed)
+		cos16(
+			inoise16(
+				cabinetFrac * 256 * 256,
+				ledFrac * 256 * 256,
+				double(props.millis) * 24
+			) + (time * 65536)
 		) / 65536.0
 	);
 }

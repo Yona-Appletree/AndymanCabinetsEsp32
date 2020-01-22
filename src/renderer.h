@@ -8,6 +8,7 @@
 #include <FastLED.h>
 #include <functional>
 #include <vector>
+#include <Artnet.h>
 #include "color.h"
 
 void rendererSetup();
@@ -50,7 +51,6 @@ struct TLedColorFunctionProps {
 	int ledIndex;
 
 	uint64_t millis;
-	double speed;
 };
 
 typedef std::function<CRGB(const TLedColorFunctionProps&)> TLedColorFunction;
@@ -90,7 +90,11 @@ struct CabinetRing {
 	String host;
 	std::vector<CabinetInfo> cabinets;
 
+	ArtnetSender sender;
+
 	double cabinetAngle(int cabinet);
+
+	void begin();
 
 	CabinetRingLedPos ledPosInRing(
 		int cabinetIndex,
@@ -99,9 +103,10 @@ struct CabinetRing {
 
 	void computeColors(
 		const TLedColorFunction& ledColorFunction,
-		uint64_t millis,
-		double speed
+		uint64_t millis
 	);
+
+	void send();
 };
 
 #endif //ANDYMANCABINETSESP32_RENDERER_H
