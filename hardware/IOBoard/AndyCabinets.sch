@@ -69,7 +69,7 @@ F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 1800 9075 50  0001 
 	1    0    0    -1  
 $EndComp
 Text Label 750  9450 0    50   ~ 0
-GPIO14_PREVIEW
+PREVIEW
 $Comp
 L LED:WS2812B D2
 U 1 1 5DB3D90F
@@ -356,19 +356,17 @@ GPIO4/U1TXD
 Text Label 1850 2000 2    39   ~ 0
 GPIO5/SPI_CS
 Text Label 3000 1900 0    39   ~ 0
-GPIO14_PREVIEW
-Text Label 3000 1800 0    39   ~ 0
-GPIO15_BRIGHT
+GPIO14
 Text Label 3000 1700 0    39   ~ 0
 GPIO16
 Text Label 3000 1500 0    39   ~ 0
-GPIO33_COLOR_B
+GPIO33
 Text Label 3000 1400 0    39   ~ 0
-GPIO34_COLOR_A
+GPIO34
 Text Label 3000 1200 0    39   ~ 0
-GPIO36_MODE_A
+GPIO36
 Text Label 3000 1100 0    39   ~ 0
-GPIO39_MODE_B
+GPIO39
 $Comp
 L AndyCabinets-rescue:+5V-ESP32-PoE-ISO_Rev_C #PWR0108
 U 1 1 5E0451F0
@@ -504,22 +502,10 @@ Wire Wire Line
 	1700 2950 2250 2950
 Wire Wire Line
 	750  9450 1400 9450
-Wire Wire Line
-	3000 1100 2800 1100
-Wire Wire Line
-	2800 1400 3000 1400
-Wire Wire Line
-	3000 1500 2800 1500
-Wire Wire Line
-	2800 1600 3000 1600
-Wire Wire Line
-	3000 1200 2800 1200
-Wire Wire Line
-	2800 1800 3000 1800
 Text Label 1700 2950 0    39   ~ 0
-GPIO15_BRIGHT
+BRIGHT
 Text Label 3400 3000 0    39   ~ 0
-GPIO13_SPEED
+SPEED
 $Comp
 L Device:C C1
 U 1 1 5E110AF6
@@ -850,16 +836,12 @@ F 3 "" H 7750 6200 50  0001 C CNN
 	1    7750 6200
 	1    0    0    -1  
 $EndComp
-Text Label 8650 4800 2    39   ~ 0
-GPIO34_COLOR_A
+Text Label 4700 1900 0    39   ~ 0
+COLOR_A
 Text Notes 4650 700  0    50   ~ 0
 Debouncing circuit from \nhttps://hifiduino.wordpress.com/2010/10/20/rotaryencoder-hw-sw-no-debounce/
-Wire Wire Line
-	3000 1300 2800 1300
-Text Label 3000 1600 0    39   ~ 0
-GPIO32_COLOR_BTN
 Text Label 3000 1300 0    39   ~ 0
-GPIO35_MODE_BTN
+GPIO35
 $Comp
 L power:+5V #PWR04
 U 1 1 5E116B12
@@ -898,8 +880,8 @@ L Device:Rotary_Encoder_Switch SW1
 U 1 1 5E2ABEA9
 P 7750 2850
 F 0 "SW1" H 7750 2483 50  0000 C CNN
-F 1 "Mode_Encoder" H 7750 2574 50  0000 C CNN
-F 2 "Rotary_Encoder:RotaryEncoder_Alps_EC12E-Switch_Vertical_H20mm_CircularMountingHoles" H 7600 3010 50  0001 C CNN
+F 1 "Color_Encoder" H 7750 2574 50  0000 C CNN
+F 2 "YonaFootprints:RotaryEncoder_Alps_EC12E-SMDSwitch_Vertical_H20mm_CircularMountingHoles" H 7600 3010 50  0001 C CNN
 F 3 "~" H 7750 3110 50  0001 C CNN
 	1    7750 2850
 	1    0    0    1   
@@ -909,7 +891,7 @@ L Device:Rotary_Encoder_Switch SW2
 U 1 1 5E2ADF54
 P 7750 5750
 F 0 "SW2" H 7750 6117 50  0000 C CNN
-F 1 "Color_Encoder" H 7750 6026 50  0000 C CNN
+F 1 "Mode_Encoder" H 7750 6026 50  0000 C CNN
 F 2 "Rotary_Encoder:RotaryEncoder_Alps_EC12E-Switch_Vertical_H20mm_CircularMountingHoles" H 7600 5910 50  0001 C CNN
 F 3 "~" H 7750 6010 50  0001 C CNN
 	1    7750 5750
@@ -917,10 +899,10 @@ F 3 "~" H 7750 6010 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	7450 5750 7350 5750
-Text Label 10300 2750 2    39   ~ 0
-GPIO35_MODE_BTN
 Text Label 10300 5650 2    39   ~ 0
-GPIO32_COLOR_BTN
+MODE_BTN
+Text Label 10300 2750 2    39   ~ 0
+COLOR_BTN
 $Comp
 L power:GNDD #PWR0103
 U 1 1 5E2D7A4E
@@ -1003,8 +985,8 @@ Wire Wire Line
 Wire Wire Line
 	8050 3050 8800 3050
 Connection ~ 8800 3050
-Text Label 4900 4800 0    39   ~ 0
-GPIO33_COLOR_B
+Text Label 8600 1900 2    39   ~ 0
+COLOR_B
 $Comp
 L 74xx:74HC14 U1
 U 1 1 5E39905D
@@ -1310,17 +1292,230 @@ Wire Wire Line
 Connection ~ 2250 2950
 Wire Wire Line
 	2700 3100 2700 3250
-Wire Wire Line
-	2800 1700 3700 1700
-NoConn ~ 3700 1700
-Wire Wire Line
-	3000 1900 2800 1900
-Wire Wire Line
-	2800 2000 3000 2000
 Text Label 3000 2000 0    39   ~ 0
-GPIO13_SPEED
-Text Label 8600 1900 2    39   ~ 0
-GPIO39_MODE_B
-Text Label 4700 1900 0    39   ~ 0
-GPIO36_MODE_A
+GPIO13
+Text Label 4900 4800 0    39   ~ 0
+MODE_B
+Text Label 8650 4800 2    39   ~ 0
+MODE_A
+Text Label 3300 1900 0    39   ~ 0
+PREVIEW
+Text Label 3300 1400 0    39   ~ 0
+BRIGHT
+Text Label 3300 1800 0    39   ~ 0
+MODE_A
+Text Label 3300 2000 0    39   ~ 0
+MODE_B
+Text Label 3300 1600 0    39   ~ 0
+MODE_BTN
+Text Label 3300 1500 0    39   ~ 0
+SPEED
+Text Label 3000 1600 0    39   ~ 0
+GPIO32
+Text Label 3000 1800 0    39   ~ 0
+GPIO15
+Wire Wire Line
+	2800 1100 3300 1100
+Wire Wire Line
+	2800 1200 3300 1200
+Wire Wire Line
+	2800 1300 3300 1300
+Wire Wire Line
+	2800 1500 3300 1500
+Wire Wire Line
+	2800 1400 3300 1400
+Wire Wire Line
+	2800 1600 3300 1600
+Wire Wire Line
+	2800 1800 3300 1800
+Wire Wire Line
+	2800 1900 3300 1900
+Wire Wire Line
+	2800 2000 3300 2000
+NoConn ~ 3300 1700
+Wire Wire Line
+	2800 1700 3300 1700
+Text Label 3300 1100 0    39   ~ 0
+COLOR_B
+Text Label 3300 1200 0    39   ~ 0
+COLOR_A
+Text Label 3300 1300 0    39   ~ 0
+COLOR_BTN
+$Comp
+L Connector_Generic:Conn_02x10_Odd_Even J1
+U 1 1 5E31920F
+P 2250 6300
+F 0 "J1" H 2300 5575 50  0000 C CNN
+F 1 "wESP Connector" H 2300 5666 50  0000 C CNN
+F 2 "YonaFootprints:PinSocket_2x10_P2.54mm_Vertical_SMD_Mirror" H 2250 6300 50  0001 C CNN
+F 3 "~" H 2250 6300 50  0001 C CNN
+	1    2250 6300
+	-1   0    0    1   
+$EndComp
+Text Label 2650 6700 0    39   ~ 0
+GND
+Wire Wire Line
+	2450 6700 3500 6700
+Text Label 2650 6600 0    39   ~ 0
+GPIO23
+Wire Wire Line
+	2450 6600 3500 6600
+NoConn ~ 3500 6600
+Text Label 2650 6500 0    39   ~ 0
+GPIO39
+Text Label 2650 6400 0    39   ~ 0
+GPIO32
+Text Label 2650 6300 0    39   ~ 0
+GND
+Wire Wire Line
+	2450 6300 3500 6300
+Text Label 2650 6200 0    39   ~ 0
+GPIO18
+Wire Wire Line
+	2450 6200 3500 6200
+NoConn ~ 3500 6200
+Text Label 2650 6100 0    39   ~ 0
+GPIO13
+Wire Wire Line
+	2450 6100 3500 6100
+Text Label 2650 6000 0    39   ~ 0
+GPIO4
+Wire Wire Line
+	2450 6000 3500 6000
+NoConn ~ 3500 6000
+Text Label 2650 5900 0    39   ~ 0
+GPIO15
+Wire Wire Line
+	2450 5900 3500 5900
+Text Label 2650 5800 0    39   ~ 0
+GND
+Wire Wire Line
+	2450 5800 3500 5800
+Text Label 1750 5800 2    39   ~ 0
+wESP_V+
+Wire Wire Line
+	1950 5800 900  5800
+Text Label 1750 5900 2    39   ~ 0
+GPIO2
+Wire Wire Line
+	1950 5900 900  5900
+NoConn ~ 900  5900
+Text Label 1750 6000 2    39   ~ 0
+GPIO12
+Wire Wire Line
+	1950 6000 900  6000
+NoConn ~ 900  6000
+Text Label 1750 6100 2    39   ~ 0
+GPIO14
+Text Label 1750 6200 2    39   ~ 0
+GPIO5
+Wire Wire Line
+	1950 6200 900  6200
+NoConn ~ 900  6200
+Text Label 1750 6300 2    39   ~ 0
+GPIO33
+Wire Wire Line
+	1950 6300 900  6300
+Text Label 1750 6400 2    39   ~ 0
+GPIO35
+Wire Wire Line
+	1950 6400 900  6400
+Text Label 1750 6500 2    39   ~ 0
+GPIO34
+Text Label 1750 6600 2    39   ~ 0
+GPIO36
+Wire Wire Line
+	1950 6600 900  6600
+Text Label 1750 6700 2    39   ~ 0
+3.3V
+Wire Wire Line
+	1950 6700 900  6700
+$Comp
+L AndyCabinets-rescue:+3.3V-ESP32-PoE-ISO_Rev_C #PWR0106
+U 1 1 5E3A6631
+P 900 6700
+F 0 "#PWR0106" H 900 6550 50  0001 C CNN
+F 1 "+3.3V" V 915 6828 50  0000 L CNN
+F 2 "" H 900 6700 60  0000 C CNN
+F 3 "" H 900 6700 60  0000 C CNN
+	1    900  6700
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:GNDD #PWR0118
+U 1 1 5E3A8B01
+P 3500 6700
+F 0 "#PWR0118" H 3500 6450 50  0001 C CNN
+F 1 "GNDD" H 3504 6545 50  0000 C CNN
+F 2 "" H 3500 6700 50  0001 C CNN
+F 3 "" H 3500 6700 50  0001 C CNN
+	1    3500 6700
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:GNDD #PWR0119
+U 1 1 5E3AA470
+P 3500 6300
+F 0 "#PWR0119" H 3500 6050 50  0001 C CNN
+F 1 "GNDD" H 3504 6145 50  0000 C CNN
+F 2 "" H 3500 6300 50  0001 C CNN
+F 3 "" H 3500 6300 50  0001 C CNN
+	1    3500 6300
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:GNDD #PWR0120
+U 1 1 5E3AA6B0
+P 3500 5800
+F 0 "#PWR0120" H 3500 5550 50  0001 C CNN
+F 1 "GNDD" H 3504 5645 50  0000 C CNN
+F 2 "" H 3500 5800 50  0001 C CNN
+F 3 "" H 3500 5800 50  0001 C CNN
+	1    3500 5800
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Jumper:Jumper_2_Open JP1
+U 1 1 5E3E6B3F
+P 2300 5250
+F 0 "JP1" H 2300 5485 50  0000 C CNN
+F 1 "wESP Power Jumper" H 2300 5394 50  0000 C CNN
+F 2 "Jumper:SolderJumper-2_P1.3mm_Open_TrianglePad1.0x1.5mm" H 2300 5250 50  0001 C CNN
+F 3 "~" H 2300 5250 50  0001 C CNN
+	1    2300 5250
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0122
+U 1 1 5E3E77AF
+P 2500 5250
+F 0 "#PWR0122" H 2500 5100 50  0001 C CNN
+F 1 "+5V" H 2515 5423 50  0000 C CNN
+F 2 "" H 2500 5250 50  0001 C CNN
+F 3 "" H 2500 5250 50  0001 C CNN
+	1    2500 5250
+	0    1    1    0   
+$EndComp
+Text Label 1800 5250 0    39   ~ 0
+wESP_V+
+Wire Wire Line
+	2100 5250 1800 5250
+Wire Wire Line
+	1950 6500 900  6500
+Wire Wire Line
+	1950 6100 900  6100
+Wire Wire Line
+	2450 6500 3500 6500
+Wire Wire Line
+	2450 6400 3500 6400
+Connection ~ 3500 6500
+Connection ~ 3500 6400
+Connection ~ 3500 6100
+Connection ~ 3500 5900
+Connection ~ 900  6100
+Connection ~ 900  6300
+Connection ~ 900  6400
+Connection ~ 900  6500
+Connection ~ 900  6600
+Connection ~ 900  5800
 $EndSCHEMATC
