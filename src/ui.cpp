@@ -13,7 +13,8 @@ UiState g_uiState = {
 	.colorMode = RAINBOW,
 	.brightness = 1.0,
 	.speed = 1.0,
-	.time = 0
+	.time = 0,
+	.effectMode = 0
 };
 
 bool g_uiStateNeedsPersist = false;
@@ -38,7 +39,7 @@ void IRAM_ATTR programRotaryIsr() {
 		else
 			g_uiState.programMode = 0;
 		
-		Serial.printf("[UI] Next Program: %d\n", g_uiState.programMode);
+		Serial.printf("[UI] Next Program (%d): %s\n", g_uiState.programMode, g_visualizationPrograms[g_uiState.programMode]->name());
 		g_uiStateNeedsPersist = true;
 	} else if (a0 == 0 && a1 == 0 && b0 == 0 && b1 == 1) {
 		// Counterclockwise
@@ -47,15 +48,20 @@ void IRAM_ATTR programRotaryIsr() {
 		else
 			g_uiState.programMode = g_visualizationPrograms.size() - 1;
 		
-		Serial.printf("[UI] Prev Program: %d\n", g_uiState.programMode);
+		Serial.printf("[UI] Prev Program (%d): %s\n", g_uiState.programMode, g_visualizationPrograms[g_uiState.programMode]->name());
 		g_uiStateNeedsPersist = true;
 	}
 }
 
 void IRAM_ATTR programButtonIsr() {
-	g_uiState.programMode = 0;
+	// Clockwise
+	if (g_uiState.effectMode < g_visualizationEffects.size() - 1)
+		g_uiState.effectMode = g_uiState.effectMode + 1;
+	else
+		g_uiState.effectMode = 0;
 
-	Serial.printf("[UI]Program Reset\n");
+	Serial.printf("[UI] Next Effect (%d): %s\n", g_uiState.effectMode, g_visualizationEffects[g_uiState.effectMode]->name());
+
 	g_uiStateNeedsPersist = true;
 }
 
@@ -137,6 +143,8 @@ void readAndValidateState() {
 	g_uiState.speed = isnan(g_uiState.speed) ? 0.5 : g_uiState.speed;
 	g_uiState.brightness = isnan(g_uiState.brightness) ? 0.5 : g_uiState.brightness;
 
+	g_uiState.effectMode = g_uiState.effectMode % g_visualizationEffects.size();
+
 	Serial.println("UI Settings Loaded");
 }
 
@@ -183,16 +191,29 @@ void readInputs() {
 
 void updateUiLeds() {
 	auto rawBright = dim8_video(255*g_uiState.brightness);
-	auto uiBright = rawBright / 8;
+	auto uiBright = rawBright / 2;
 
 	FastLED.setBrightness(uiBright == 0 ? (rawBright == 0 ? 0 : 1) : uiBright);
 
-	auto program = g_visualizationPrograms[g_uiState.programMode % g_visualizationPrograms.size()];
+	auto previewRing = g_cabinetRings[0];
 
-	program->applyToPreview(
-		g_uiLeds,
-		UI_LED_COUNT
-	);
+	// Start writing to the output leds offset by program mode to give the effect of a turning dial
+	int outputLedIndex = g_uiState.programMode + 1;
+
+	for (auto cab : previewRing->cabinets) {
+		for (int ledIndex = 0; ledIndex < cab->ledCount; ledIndex++) {
+			CRGB color = cab->buffer2[ledIndex];
+			color.r = scale8_video(color.r, color.r);
+			color.g = scale8_video(color.g, color.g);
+			color.b = scale8_video(color.b, color.b);
+
+			color.nscale8(uiBright);
+
+			g_uiLeds[(outputLedIndex++) % UI_LED_COUNT] = color;
+		}
+
+		g_uiLeds[(outputLedIndex++) % UI_LED_COUNT] = CRGB::Black;
+	}
 
 	FastLED.show();
 }

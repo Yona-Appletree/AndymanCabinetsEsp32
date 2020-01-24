@@ -7,8 +7,17 @@
 
 #define CABINET_LED_COUNT 70
 
+extern std::vector<CabinetRing*> g_cabinetRings = {
+	// Preview
+	new CabinetRing {
+		.host = nullptr,
+		.cabinets = {
+			new CabinetInfo(7, TOP_RIGHT, true, 1),
+			new CabinetInfo(7, TOP_LEFT, true, 2)
+		}
+	},
 
-static std::vector<CabinetRing*> cabinetRings = {
+	// North Cabinets (8)
 	new CabinetRing {
 		.host = "192.168.1.10",
 		.cabinets = {
@@ -23,6 +32,7 @@ static std::vector<CabinetRing*> cabinetRings = {
 		}
 	},
 
+	// South Cabinets (4)
 	new CabinetRing {
 		.host = "192.168.1.201",
 		.cabinets = {
@@ -38,37 +48,28 @@ static std::vector<CabinetRing*> cabinetRings = {
 void rendererSetup() {
 	Serial.println("Starting Renderer...");
 
-	for (auto ring : cabinetRings) {
+	for (auto ring : g_cabinetRings) {
 		ring->begin();
 	}
 }
 
 void rendererLoop() {
-	uint8_t brightness = dim8_video(255 * (g_uiState.brightness));
-
-	auto program = g_visualizationPrograms[g_uiState.programMode % g_visualizationPrograms.size()];
+	auto pVisualizationProgram = g_visualizationPrograms[g_uiState.programMode % g_visualizationPrograms.size()];
+	auto pVisualizationEffect = g_visualizationEffects[g_uiState.effectMode % g_visualizationEffects.size()];
 
 	static auto lastTime = g_uiState.time;
 	auto deltaTime = g_uiState.time - lastTime;
 	lastTime = g_uiState.time;
 
-	for (auto ring : cabinetRings) {
-		program->applyToRing(*ring, deltaTime);
-
-		// Apply dimming
-		for (auto cabinet : ring->cabinets) {
-			for (int ledIndex=0; ledIndex<cabinet->ledCount; ledIndex++) {
-				cabinet->buffer[ledIndex].nscale8(cabinet->buffer[ledIndex]);
-				cabinet->buffer[ledIndex].nscale8_video(brightness);
-			}
-
-			cabinet->swapBuffers();
-		}
+	for (auto ring : g_cabinetRings) {
+		pVisualizationProgram->applyToRing(*ring, deltaTime);
+		pVisualizationEffect->applyToRing(*ring, deltaTime);
+		ring->swapBuffers();
 	}
 }
 
 void rendererSend() {
-	for (auto ring : cabinetRings) {
+	for (auto ring : g_cabinetRings) {
 		ring->send();
 	}
 }
@@ -161,21 +162,52 @@ CabinetRingLedPos CabinetRing::ledPosInRing(int cabinetIndex, int ledIndex) cons
 }
 
 void CabinetRing::begin() {
-	Serial.println("\tConnecting to " + host);
-
-	sender.begin(host.c_str());
+	if (host != nullptr) {
+		Serial.printf("\tConnecting to %s\n", host);
+		sender.begin(host);
+	}
 }
 
 void CabinetRing::send() {
+	if (host == nullptr) {
+		return;
+	}
+
+	uint8_t brightness = dim8_video(255 * (g_uiState.brightness));
+
+	int maxLedCount = 0;
+	for (auto cab : cabinets) {
+		maxLedCount = std::max(maxLedCount, cab->ledCount);
+	}
+
+	auto channelCount = maxLedCount * 3;
+
+	auto * tempBuffer = static_cast<uint8_t *>(malloc(channelCount));
+
 	for (int cabinetIndex=0; cabinetIndex<cabinets.size(); cabinetIndex++) {
 		auto cabinet = cabinets[cabinetIndex];
 
+		memcpy(tempBuffer, (uint8_t *) cabinet->buffer2, channelCount);
+
+		for (int i=0; i<channelCount; i++) {
+			tempBuffer[i] = scale8(tempBuffer[i], tempBuffer[i]);
+			tempBuffer[i] = scale8_video(tempBuffer[i], brightness);
+		}
+
 		sender.set(
 			cabinet->universe - 1,
-			(uint8_t *) cabinet->buffer2,
-			cabinet->ledCount * 3
+			(uint8_t *) tempBuffer,
+			channelCount
 		);
 
 		sender.send();
+	}
+
+	free(tempBuffer);
+}
+
+void CabinetRing::swapBuffers() {
+	for (auto cab : cabinets) {
+		cab->swapBuffers();
 	}
 }

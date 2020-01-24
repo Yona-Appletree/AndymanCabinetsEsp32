@@ -83,7 +83,7 @@ struct CabinetInfo {
 struct CabinetRing {
 	CabinetRing(const CabinetRing&) = delete;
 
-	String host;
+	const char* host;
 	std::vector<CabinetInfo*> cabinets;
 
 	ArtnetSender sender;
@@ -98,6 +98,10 @@ struct CabinetRing {
 	) const;
 
 	void send();
+
+	void swapBuffers();
 };
+
+extern std::vector<CabinetRing*> g_cabinetRings;
 
 #endif //ANDYMANCABINETSESP32_RENDERER_H

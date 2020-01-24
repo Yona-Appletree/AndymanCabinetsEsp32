@@ -30,6 +30,7 @@ struct UiState {
 	double brightness;
 	double speed;
 	int64_t time;
+	int effectMode;
 };
 
 extern UiState g_uiState;
