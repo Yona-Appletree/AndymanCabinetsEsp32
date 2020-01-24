@@ -6,6 +6,8 @@
 void core2loop(void * data);
 TaskHandle_t renderTask;
 
+volatile bool rendererStarted = false;
+
 void setup()
 {
 	Serial.begin(115200);
@@ -34,9 +36,13 @@ void loop()
 	colorLoop();
 	networkLoop();
 
+	if (rendererStarted) {
+		rendererSend();
+	}
+
 	auto duration = millis() - start;
 
-	//Serial.printf("Duration: %dms\n\n", (int) duration);
+	//Serial.printf("main: %dms\n", (int) duration);
 
 	if (duration < 30) {
 		FastLED.delay(30 - duration);
@@ -53,12 +59,16 @@ void core2loop(void * data) {
 
 	rendererSetup();
 
+	rendererStarted = true;
+
 	while (true) {
 		auto start = millis();
 
 		rendererLoop();
 
 		auto duration = millis() - start;
+
+		//Serial.printf("render ms: %d\n", (int) duration);
 
 		if (duration < 30) {
 			delay(30 - duration);

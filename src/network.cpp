@@ -31,6 +31,24 @@ void networkSetup(){
 	// Listen to events
 	WiFi.onEvent(handleNetworkEvent);
 
+	// No WiFi until we get the analog pins on ADC1
+	// See table here: https://desire.giesecke.tk/index.php/2018/01/30/adc2-channel-cannot-be-used-when-wifi-is-in-use/
+	// And thread here: https://github.com/espressif/arduino-esp32/issues/102
+
+//	if (WiFi.config(
+//		IPAddress(192, 168, 1, 210),
+//		IPAddress(192, 168, 1, 1),
+//		IPAddress(255, 255, 255, 0),
+//		IPAddress(8, 8, 4, 4),
+//		IPAddress(8, 8, 8, 8)
+//	)) {
+//		Serial.println("Configured WiFi for static IP");
+//	} else {
+//		Serial.println("Failed to configure WiFi for static IP");
+//	}
+//
+//	WiFi.begin("AndyCabinetsMain", "playingwithlight");
+
 	// Start the ethernet
 	ETH.begin();
 

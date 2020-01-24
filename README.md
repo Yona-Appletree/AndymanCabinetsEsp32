@@ -33,3 +33,10 @@ PlatformIO Documentation: https://docs.platformio.org/en/latest/quickstart.html
 
 Install Library: pio lib install "FastLED"
 wESP Documentation: https://wesp32.com/software/
+
+
+## TODO
+
+- [ ] Refactor programs into class
+- [ ] Support preview of programs
+- [ ] Indicate selector positions

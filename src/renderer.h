@@ -13,6 +13,7 @@
 
 void rendererSetup();
 void rendererLoop();
+void rendererSend();
 
 enum CabinetCorner {
 	TOP_LEFT,
@@ -45,33 +46,22 @@ struct CabinetLedPos {
 struct CabinetInfo;
 struct CabinetRing;
 
-struct TLedColorFunctionProps {
-	const CabinetRing& ring;
-	int cabinetIndex;
-	int ledIndex;
-
-	uint64_t millis;
-};
-
-typedef std::function<CRGB(const TLedColorFunctionProps&)> TLedColorFunction;
-
 struct CabinetInfo {
+	CabinetInfo(const CabinetInfo&) = delete;
+
 	int ledCount;
 	CabinetCorner startCorner;
 	bool clockwise;
 	int universe;
 
 	CRGB* buffer;
+	CRGB* buffer2;
 
 	CabinetInfo(
 		int ledCount,
 		CabinetCorner startCorner,
 		bool clockwise,
 		int universe
-	);
-
-	CabinetInfo(
-		const CabinetInfo &other
 	);
 
 	~CabinetInfo();
@@ -84,11 +74,17 @@ struct CabinetInfo {
 		auto pos = ledPos(ledIndex);
 		return atan2(pos.y, pos.x);
 	}
+
+	void fill(CRGB color) const;
+
+	void swapBuffers();
 };
 
 struct CabinetRing {
+	CabinetRing(const CabinetRing&) = delete;
+
 	String host;
-	std::vector<CabinetInfo> cabinets;
+	std::vector<CabinetInfo*> cabinets;
 
 	ArtnetSender sender;
 
@@ -100,11 +96,6 @@ struct CabinetRing {
 		int cabinetIndex,
 		int ledIndex
 	) const;
-
-	void computeColors(
-		const TLedColorFunction& ledColorFunction,
-		uint64_t millis
-	);
 
 	void send();
 };

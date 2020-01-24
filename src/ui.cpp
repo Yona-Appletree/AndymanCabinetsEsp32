@@ -4,20 +4,25 @@
 
 #include "ui.h"
 #include <FastLED.h>
+#include <EEPROM.h>
 
 static CRGB g_uiLeds[UI_LED_COUNT];
 
 UiState g_uiState = {
-	.programMode = NOISE,
+	.programMode = 0,
 	.colorMode = RAINBOW,
 	.brightness = 1.0,
 	.speed = 1.0,
 	.time = 0
 };
 
+bool g_uiStateNeedsPersist = false;
+
 void readInputs();
 void updateUiLeds();
 void updateTime();
+void persistChanges();
+void readAndValidateState();
 
 void IRAM_ATTR programRotaryIsr() {
 	static int a0=0, a1=0, b0=0, b1=0;
@@ -28,27 +33,30 @@ void IRAM_ATTR programRotaryIsr() {
 
 	if (a0 == 0 && a1 == 1 && b0 == 0 && b1 == 0) {
 		// Clockwise
-		if (g_uiState.programMode < ProgramModeCount - 1)
-			g_uiState.programMode = static_cast<ProgramMode>(g_uiState.programMode + 1);
+		if (g_uiState.programMode < g_visualizationPrograms.size() - 1)
+			g_uiState.programMode = g_uiState.programMode + 1;
 		else
-			g_uiState.programMode = static_cast<ProgramMode>(0);
+			g_uiState.programMode = 0;
 		
 		Serial.printf("[UI] Next Program: %d\n", g_uiState.programMode);
+		g_uiStateNeedsPersist = true;
 	} else if (a0 == 0 && a1 == 0 && b0 == 0 && b1 == 1) {
 		// Counterclockwise
 		if (g_uiState.programMode > 0)
-			g_uiState.programMode = static_cast<ProgramMode>(g_uiState.programMode - 1);
+			g_uiState.programMode = g_uiState.programMode - 1;
 		else
-			g_uiState.programMode = static_cast<ProgramMode>(ProgramModeCount - 1);
+			g_uiState.programMode = g_visualizationPrograms.size() - 1;
 		
 		Serial.printf("[UI] Prev Program: %d\n", g_uiState.programMode);
+		g_uiStateNeedsPersist = true;
 	}
 }
 
 void IRAM_ATTR programButtonIsr() {
-	g_uiState.programMode = static_cast<ProgramMode>(0);
+	g_uiState.programMode = 0;
 
 	Serial.printf("[UI]Program Reset\n");
+	g_uiStateNeedsPersist = true;
 }
 
 
@@ -67,6 +75,7 @@ void IRAM_ATTR colorRotaryIsr() {
 			g_uiState.colorMode = static_cast<ColorMode>(0);
 		
 		Serial.printf("[UI] Next Color: %d\n", g_uiState.colorMode);
+		g_uiStateNeedsPersist = true;
 	} else if (a0 == 0 && a1 == 0 && b0 == 0 && b1 == 1) {
 		// Counterclockwise
 		if (g_uiState.colorMode > 0)
@@ -75,6 +84,7 @@ void IRAM_ATTR colorRotaryIsr() {
 			g_uiState.colorMode = static_cast<ColorMode>(ColorModeCount - 1);
 		
 		Serial.printf("[UI] Prev Color: %d\n", g_uiState.colorMode);
+		g_uiStateNeedsPersist = true;
 	}
 }
 
@@ -82,11 +92,15 @@ void IRAM_ATTR colorButtonIsr() {
 	g_uiState.colorMode = static_cast<ColorMode>(0);
 
 	Serial.printf("[UI] Color Reset\n");
+	g_uiStateNeedsPersist = true;
 }
 
 void uiSetup() {
 	// Initialize the LEDs
 	CFastLED::addLeds<WS2812B, UI_PIN_LED, GRB>(g_uiLeds, UI_LED_COUNT);
+
+	EEPROM.begin(sizeof(g_uiState));
+	readAndValidateState();
 
 	pinMode(UI_PIN_MODE_A, INPUT);
 	pinMode(UI_PIN_MODE_B, INPUT);
@@ -95,9 +109,6 @@ void uiSetup() {
 	pinMode(UI_PIN_COLOR_A, INPUT);
 	pinMode(UI_PIN_COLOR_B, INPUT);
 	pinMode(UI_PIN_COLOR_BTN, INPUT);
-
-	pinMode(UI_PIN_BRIGHTNESS, ANALOG);
-	pinMode(UI_PIN_SPEED, ANALOG);
 
 	attachInterrupt(UI_PIN_MODE_A, programRotaryIsr, CHANGE);
 	attachInterrupt(UI_PIN_MODE_B, programRotaryIsr, CHANGE);
@@ -112,6 +123,36 @@ void uiLoop() {
 	readInputs();
 	updateUiLeds();
 	updateTime();
+
+	persistChanges();
+}
+
+void readAndValidateState() {
+	EEPROM.readBytes(0, &g_uiState, sizeof(g_uiState));
+
+	g_uiState.programMode = g_uiState.programMode % g_visualizationPrograms.size();
+	g_uiState.colorMode = static_cast<ColorMode>(g_uiState.colorMode % ColorModeCount);
+	g_uiState.time = 0;
+
+	g_uiState.speed = isnan(g_uiState.speed) ? 0.5 : g_uiState.speed;
+	g_uiState.brightness = isnan(g_uiState.brightness) ? 0.5 : g_uiState.brightness;
+
+	Serial.println("UI Settings Loaded");
+}
+
+void persistChanges() {
+	static auto lastPersistMs = 0;
+
+	if (g_uiStateNeedsPersist && (millis() - lastPersistMs) > 10000) {
+		g_uiStateNeedsPersist = false;
+
+		EEPROM.writeBytes(0, &g_uiState, sizeof(g_uiState));
+		EEPROM.commit();
+
+		Serial.println("UI Settings Persisted");
+
+		lastPersistMs = millis();
+	}
 }
 
 void updateTime() {
@@ -141,17 +182,17 @@ void readInputs() {
 }
 
 void updateUiLeds() {
-	FastLED.setBrightness(uint8_t(g_uiState.brightness * 32));
+	auto rawBright = dim8_video(255*g_uiState.brightness);
+	auto uiBright = rawBright / 8;
 
-	int period = 3000;
-	auto time = double(g_uiState.time % period) / period;
+	FastLED.setBrightness(uiBright == 0 ? (rawBright == 0 ? 0 : 1) : uiBright);
 
-	for (int i=0; i<UI_LED_COUNT; i++) {
-		g_uiLeds[i] = colorFor(
-			(time + double(i) / UI_LED_COUNT),
-			1.0 / UI_LED_COUNT
-		);
-	}
+	auto program = g_visualizationPrograms[g_uiState.programMode % g_visualizationPrograms.size()];
+
+	program->applyToPreview(
+		g_uiLeds,
+		UI_LED_COUNT
+	);
 
 	FastLED.show();
 }

@@ -5,30 +5,30 @@
 #include "renderer.h"
 #include "ui.h"
 
-#define CABINET_LED_COUNT 70
+#define CABINET_LED_COUNT 10
 
-static std::vector<CabinetRing> cabinetRings = {
-	CabinetRing {
+static std::vector<CabinetRing*> cabinetRings = {
+	new CabinetRing {
 		.host = "192.168.1.10",
 		.cabinets = {
-			CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 1),
-			CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 2),
-			CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 3),
-			CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 4),
-			CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 5),
-			CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 6),
-			CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 7),
-			CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 8),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 1),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 2),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 3),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 4),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 5),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 6),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 7),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 8),
 		}
 	},
 
-	CabinetRing {
+	new CabinetRing {
 		.host = "192.168.1.201",
 		.cabinets = {
-			CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 1),
-			CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 2),
-			CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 3),
-			CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 4),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 1),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 2),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 3),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 4),
 		}
 	},
 };
@@ -37,31 +37,35 @@ static std::vector<CabinetRing> cabinetRings = {
 void rendererSetup() {
 	Serial.println("Starting Renderer...");
 
-	for (CabinetRing& ring : cabinetRings) {
-		ring.begin();
+	for (auto ring : cabinetRings) {
+		ring->begin();
 	}
 }
 
 void rendererLoop() {
-	auto fun = functionForMode(g_uiState.programMode);
+	uint8_t brightness = dim8_video(255 * (g_uiState.brightness));
 
-	for (CabinetRing& ring : cabinetRings) {
-		ring.computeColors(
-			fun,
-			g_uiState.time
-		);
+	auto program = g_visualizationPrograms[g_uiState.programMode % g_visualizationPrograms.size()];
 
-		ring.send();
+	for (auto ring : cabinetRings) {
+		program->applyToRing(* ring);
+
+		// Apply dimming
+		for (auto cabinet : ring->cabinets) {
+			for (int ledIndex=0; ledIndex<cabinet->ledCount; ledIndex++) {
+				cabinet->buffer[ledIndex].nscale8_video(brightness);
+			}
+
+			cabinet->swapBuffers();
+		}
 	}
-
-//	Serial.printf(
-//		"%d %d %d \n",
-//		cabinetRings[0].cabinets[0].buffer[0].r,
-//		cabinetRings[0].cabinets[0].buffer[0].g,
-//		cabinetRings[0].cabinets[0].buffer[0].b
-//	);
 }
 
+void rendererSend() {
+	for (auto ring : cabinetRings) {
+		ring->send();
+	}
+}
 
 CabinetInfo::CabinetInfo(int ledCount, CabinetCorner startCorner, bool clockwise, int universe) {
 	this->ledCount = ledCount;
@@ -69,21 +73,12 @@ CabinetInfo::CabinetInfo(int ledCount, CabinetCorner startCorner, bool clockwise
 	this->clockwise = clockwise;
 	this->universe = universe;
 	this->buffer = new CRGB[ledCount];
-}
-
-CabinetInfo::CabinetInfo(const CabinetInfo &other) : CabinetInfo(
-	other.ledCount,
-	other.startCorner,
-	other.clockwise,
-	other.universe
-) {
-	for (int i=0; i<ledCount; i++) {
-		buffer[i] = other.buffer[i];
-	}
+	this->buffer2 = new CRGB[ledCount];
 }
 
 CabinetInfo::~CabinetInfo() {
 	delete buffer;
+	delete buffer2;
 }
 
 CabinetSide CabinetInfo::startSide() const {
@@ -131,12 +126,24 @@ CabinetLedPos CabinetInfo::ledPos(int ledIndex) const {
 	}
 }
 
+void CabinetInfo::fill(CRGB color) const {
+	for (int i=0; i<ledCount; i++) {
+		buffer[i] = color;
+	}
+}
+
+void CabinetInfo::swapBuffers() {
+	CRGB* temp = buffer;
+	buffer = buffer2;
+	buffer2 = temp;
+}
+
 double CabinetRing::cabinetAngle(int cabinet) {
 	return TWO_PI * (double) cabinet / cabinets.size();
 }
 
 CabinetRingLedPos CabinetRing::ledPosInRing(int cabinetIndex, int ledIndex) const {
-	auto ledPos = cabinets[cabinetIndex].ledPos(ledIndex);
+	auto ledPos = cabinets[cabinetIndex]->ledPos(ledIndex);
 
 	// [-.5, .5] value for the x position
 	auto ledXFrac = ledPos.x / 2;
@@ -147,29 +154,6 @@ CabinetRingLedPos CabinetRing::ledPosInRing(int cabinetIndex, int ledIndex) cons
 	};
 }
 
-
-void CabinetRing::computeColors(
-	const TLedColorFunction& ledColorFunction,
-	uint64_t millis
-) {
-	uint8_t brightness = dim8_video(255 * (g_uiState.brightness));
-
-	for (int cabinetIndex=0; cabinetIndex<cabinets.size(); cabinetIndex++) {
-		const CabinetInfo& cabinet = cabinets[cabinetIndex];
-
-		for (int ledIndex=0; ledIndex<cabinet.ledCount; ledIndex++) {
-			cabinet.buffer[ledIndex] = ledColorFunction({
-				.ring = *this,
-				.cabinetIndex = cabinetIndex,
-				.ledIndex = ledIndex,
-				.millis = millis,
-			});
-
-			cabinet.buffer[ledIndex].nscale8_video(brightness);
-		}
-	}
-}
-
 void CabinetRing::begin() {
 	Serial.println("\tConnecting to " + host);
 
@@ -178,12 +162,12 @@ void CabinetRing::begin() {
 
 void CabinetRing::send() {
 	for (int cabinetIndex=0; cabinetIndex<cabinets.size(); cabinetIndex++) {
-		const CabinetInfo &cabinet = cabinets[cabinetIndex];
+		auto cabinet = cabinets[cabinetIndex];
 
 		sender.set(
-			cabinet.universe - 1,
-			(uint8_t *) cabinet.buffer,
-			cabinet.ledCount * 3
+			cabinet->universe - 1,
+			(uint8_t *) cabinet->buffer2,
+			cabinet->ledCount * 3
 		);
 
 		sender.send();
