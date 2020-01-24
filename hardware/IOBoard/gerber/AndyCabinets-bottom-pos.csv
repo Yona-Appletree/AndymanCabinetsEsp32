@@ -1,0 +1,4 @@
+Ref,Val,Package,PosX,PosY,Rot,Side
+"EXT1","NS(HN1x10)","PinHeader_1x10_P2.54mm_Vertical_SMD_Pin1Left",-12.865437,14.306330,0.000000,bottom
+"EXT2","NS(HN1x10)","PinHeader_1x10_P2.54mm_Vertical_SMD_Pin1Left",12.534563,14.306330,0.000000,bottom
+"J1","wESP Connector","PinSocket_2x10_P2.54mm_Vertical_SMD_Mirror",-0.157479,-31.770371,90.000000,bottom

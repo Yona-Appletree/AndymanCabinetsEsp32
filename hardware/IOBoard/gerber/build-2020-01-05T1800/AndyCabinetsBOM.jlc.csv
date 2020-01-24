@@ -1,0 +1,12 @@
+"Comment", "Designator", "Footprint", "LCSC Part Number"
+"1uF","C10,C4,C3,C2,C1","C_0805_2012Metric",,
+"Bright_Pot","RV2","Potentiometer_TT_P0915N_Flush",,
+"Speed_Pot","RV1","Potentiometer_TT_P0915N_Flush",,
+"74HC14","U1","SOIC-14_3.9x8.7mm_P1.27mm",,
+"NS(HN1x10)","EXT2,EXT1","PinHeader_1x10_P2.54mm_Vertical_SMD_Pin1Left",,
+"10K","R12,R11,R10,R9,R8,R7,R6,R5,R4,R3,R2,R1","R_0402_1005Metric",,
+"0.1uF","C13,C11","C_0402_1005Metric",,
+"0.01uF","C8,C7,C6,C5","C_0402_1005Metric",,
+"Color_Encoder","SW2","RotaryEncoder_Alps_EC12E-Switch_Vertical_H20mm_CircularMountingHoles",,
+"Mode_Encoder","SW1","RotaryEncoder_Alps_EC12E-Switch_Vertical_H20mm_CircularMountingHoles",,
+"WS2812B","D15,D1,D16,D14,D13,D12,D11,D10,D9,D8,D7,D6,D5,D4,D3,D2","LED_SK6812MINI_PLCC4_3.5x3.5mm_P1.75mm",,
