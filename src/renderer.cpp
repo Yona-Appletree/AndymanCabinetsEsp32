@@ -5,7 +5,8 @@
 #include "renderer.h"
 #include "ui.h"
 
-#define CABINET_LED_COUNT 10
+#define CABINET_LED_COUNT 70
+
 
 static std::vector<CabinetRing*> cabinetRings = {
 	new CabinetRing {
@@ -47,12 +48,17 @@ void rendererLoop() {
 
 	auto program = g_visualizationPrograms[g_uiState.programMode % g_visualizationPrograms.size()];
 
+	static auto lastTime = g_uiState.time;
+	auto deltaTime = g_uiState.time - lastTime;
+	lastTime = g_uiState.time;
+
 	for (auto ring : cabinetRings) {
-		program->applyToRing(* ring);
+		program->applyToRing(*ring, deltaTime);
 
 		// Apply dimming
 		for (auto cabinet : ring->cabinets) {
 			for (int ledIndex=0; ledIndex<cabinet->ledCount; ledIndex++) {
+				cabinet->buffer[ledIndex].nscale8(cabinet->buffer[ledIndex]);
 				cabinet->buffer[ledIndex].nscale8_video(brightness);
 			}
 

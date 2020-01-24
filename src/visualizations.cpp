@@ -5,6 +5,8 @@
 #include "ui.h"
 #include <FastLED.h>
 #include <noise.h>
+#include <map>
+#include <iterator>
 
 double Visualization::time3s() {
 	return double(g_uiState.time % 3000) / 3000;
@@ -19,6 +21,34 @@ void Visualization::sectionedPreview(
 	int count,
 	std::function<CRGB(double sectionFrac, double ledFrac)> pLedFn
 ) {
+	sectionedPreviewIndexed(
+		buffer,
+		count,
+		[pLedFn](
+			int sectionIndex,
+			int sectionCount,
+			int ledIndex,
+			int ledCount
+		) {
+			return pLedFn(
+				double(sectionIndex) / sectionCount,
+				double(ledIndex) / ledCount
+			);
+		}
+	);
+}
+
+
+void Visualization::sectionedPreviewIndexed(
+	CRGB *buffer,
+	int count,
+	std::function<CRGB(
+		int sectionIndex,
+		int sectionCount,
+		int ledIndex,
+		int ledCount
+	)> pLedFn
+) {
 	auto overallOffset = 1 + g_uiState.programMode;
 
 	const auto sectionCount = 2;
@@ -26,17 +56,16 @@ void Visualization::sectionedPreview(
 
 	for (int sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++) {
 		const auto ledOffset = sectionIndex * sectionLedCount;
-		const auto sectionFrac = double(sectionIndex) / sectionCount;
 		const auto thisSectionLedCount = sectionIndex == sectionCount - 1
-			? count - ledOffset
-			: sectionLedCount;
+		                                 ? count - ledOffset
+		                                 : sectionLedCount;
 
 		for (int ledIndex = 0; ledIndex < thisSectionLedCount - 1; ledIndex++) {
-			auto ledFrac = double(ledIndex) / (thisSectionLedCount - 1);
-
 			buffer[(overallOffset + ledOffset + ledIndex) % count] = pLedFn(
-				sectionFrac,
-				ledFrac
+				sectionIndex,
+				sectionCount,
+				ledIndex,
+				thisSectionLedCount
 			);
 		}
 
@@ -48,7 +77,7 @@ void Visualization::sectionedPreview(
  * All cabinets the same color.
  */
 class AllSolid : public Visualization {
-	void applyToRing(const CabinetRing &ring) override {
+	void applyToRing(const CabinetRing &ring, const uint64_t deltaTime) override {
 		double time = time3s();
 		auto color = colorFor(time);
 
@@ -75,7 +104,7 @@ class AllSolid : public Visualization {
  * Each cabinet one single color.
  */
 class FadeSingle : public Visualization {
-	void applyToRing(const CabinetRing &ring) override {
+	void applyToRing(const CabinetRing &ring, const uint64_t deltaTime) override {
 		double time = time3s();
 
 		for (int cabIndex = 0; cabIndex < ring.cabinets.size(); cabIndex++) {
@@ -118,7 +147,7 @@ public:
 		this->zoomMultiplier = zoomMultiplier;
 	}
 
-	void applyToRing(const CabinetRing &ring) override {
+	void applyToRing(const CabinetRing &ring, const uint64_t deltaTime) override {
 		double time = time3s();
 
 		for (int cabIndex = 0; cabIndex < ring.cabinets.size(); cabIndex++) {
@@ -150,11 +179,99 @@ public:
 	}
 };
 
+template <template<class,class,class...> class C, typename K, typename V, typename... Args>
+V mapValueOrDefault(const C<K,V,Args...>& m, K const& key, const V & defval)
+{
+	typename C<K,V,Args...>::const_iterator it = m.find( key );
+	if (it == m.end())
+		return defval;
+	return it->second;
+}
+
+/**
+ * Each cabinet fades through the palette, offset by a bit
+ */
+class TwinkleEach : public Visualization {
+public:
+	double zoomMultiplier;
+
+	std::map<CabinetInfo*, double> sparkMap;
+	uint64_t lastSparkMs = 0;
+
+	TwinkleEach(
+		double zoomMultiplier
+	) {
+		this->zoomMultiplier = zoomMultiplier;
+	}
+
+	void applyToRing(const CabinetRing &ring, const uint64_t deltaTime) override {
+		double colorTime = time10s();
+
+		int sparkCabIndex = -1;
+		if (! sparkMap.empty() && g_uiState.time - lastSparkMs > random(50, 100)) {
+			lastSparkMs = g_uiState.time;
+
+			sparkCabIndex = random(ring.cabinets.size());
+		}
+
+		for (int cabIndex = 0; cabIndex < ring.cabinets.size(); cabIndex++) {
+			auto cab = ring.cabinets[cabIndex];
+			auto cabFrac = double(cabIndex) / ring.cabinets.size();
+
+			auto sparkValue = sparkMap[cab];
+
+			if (cabIndex == sparkCabIndex) {
+				sparkValue = sparkValue + std::min(50 + (double)random(100), 255 - sparkValue);
+			} else {
+				sparkValue = std::max(0.0, sparkValue - deltaTime / 10.0);
+			}
+
+			sparkMap[cab] = sparkValue;
+
+			for (int ledIndex = 0; ledIndex < cab->ledCount; ledIndex++) {
+				auto ledFrac = (double(ledIndex) / cab->ledCount) * zoomMultiplier;
+
+				cab->buffer[ledIndex] = colorFor(colorTime + ledFrac + cabFrac).nscale8_video(sparkValue);
+			}
+		}
+	}
+
+	void applyToPreview(CRGB *buffer, int count) override {
+		double time = time3s();
+
+		sectionedPreviewIndexed(
+			buffer,
+			count,
+			[time, this](
+				int sectionIndex,
+				int sectionCount,
+				int ledIndex,
+				int ledCount
+			) {
+				double ledFrac = double(ledIndex) / ledCount * (zoomMultiplier / 4);
+				double sectionFrac = double(sectionIndex) / sectionCount;
+
+				auto sparkEntry = sparkMap.begin();
+				std::advance(sparkEntry, std::min(sectionIndex, (int) sparkMap.size()));
+
+				uint8_t sparkValue;
+				if (sparkEntry == sparkMap.end()) {
+					sparkValue = 0;
+				} else {
+					sparkValue = sparkEntry->second;
+				}
+
+				return colorFor(time + ledFrac + sectionFrac).nscale8_video(sparkValue);
+			}
+		);
+	}
+};
+
 /**
  * Each cabinet displays data from perlin noise
  */
 class Noise : public Visualization {
-	void applyToRing(const CabinetRing &ring) override {
+	void applyToRing(const CabinetRing &ring, const uint64_t deltaTime) override {
 		auto time = time10s();
 
 		for (int cabIndex = 0; cabIndex < ring.cabinets.size(); cabIndex++) {
@@ -204,5 +321,6 @@ extern std::vector<Visualization *> g_visualizationPrograms = {
 	new FadeSingle(),
 	new FadeEach(1),
 	new FadeEach(.3),
-	new Noise()
+	new Noise(),
+	new TwinkleEach(.3)
 };
