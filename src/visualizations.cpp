@@ -28,7 +28,7 @@ void Visualization::sectionedPreview(
 		const auto ledOffset = sectionIndex * sectionLedCount;
 		const auto sectionFrac = double(sectionIndex) / sectionCount;
 		const auto thisSectionLedCount = sectionIndex == sectionCount - 1
-			? count - ledOffset;
+			? count - ledOffset
 			: sectionLedCount;
 
 		for (int ledIndex = 0; ledIndex < thisSectionLedCount - 1; ledIndex++) {
