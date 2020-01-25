@@ -28,10 +28,9 @@ enum ColorMode {
 	SUNSET,
 	NATURE,
 	FIRE,
-	PARTY,
 	CHANGING
 };
 
-const auto ColorModeCount = 6;
+const auto ColorModeCount = 5;
 
 #endif //ANDYMANCABINETSESP32_COLOR_H

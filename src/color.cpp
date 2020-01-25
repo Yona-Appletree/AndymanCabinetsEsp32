@@ -23,7 +23,6 @@ void updateRainbow();
 void updateSunset();
 void updateNature();
 void updateFire();
-void updateParty();
 void updateChanging();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,7 +36,6 @@ void colorLoop() {
 		case SUNSET: updateSunset(); break;
 		case NATURE: updateNature(); break;
 		case FIRE: updateFire(); break;
-		case PARTY: updateParty(); break;
 		case CHANGING: updateChanging(); break;
 	}
 }
@@ -127,11 +125,6 @@ void updateNature() {
 
 void updateFire() {
 	staticPalette = HeatColors_p;
-	g_currentPalette = & staticPalette;
-}
-
-void updateParty() {
-	staticPalette = PartyColors_p;
 	g_currentPalette = & staticPalette;
 }
 

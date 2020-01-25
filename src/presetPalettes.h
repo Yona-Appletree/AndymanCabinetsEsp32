@@ -85,17 +85,6 @@ DEFINE_GRADIENT_PALETTE(bhw3_40) {
 	204,120,66,242,
 	255,93,29,90,
 };
-DEFINE_GRADIENT_PALETTE(rainbow) {
-	0,255,0,0,
-	32,171,85,0,
-	64,171,171,0,
-	96,0,255,0,
-	128,0,171,85,
-	160,0,0,255,
-	192,85,0,171,
-	224,71,0,85,
-	255,55,0,0,
-};
 DEFINE_GRADIENT_PALETTE(bhw3_18) {
 	0,46,43,74,
 	30,80,61,166,
@@ -110,7 +99,7 @@ DEFINE_GRADIENT_PALETTE(bhw3_18) {
 	255,0,9,6,
 };
 
-TProgmemRGBGradientPalette_bytes palettes[] = {rainbow, bhw3_32, bhw1_01, bhw2_xc, bhw3_52, bhw2_14, bhw3_40, bhw3_18};
+TProgmemRGBGradientPalette_bytes palettes[] = {niceRainbow, bhw3_32, bhw1_01, bhw2_xc, bhw3_52, bhw2_14, bhw3_40, bhw3_18};
 char paletteNames[][8] = { "rainbow", "bhw3_32", "bhw1_01", "bhw2_xc", "bhw3_52", "bhw2_14", "bhw3_40", "bhw3_18" };
 const uint16_t paletteCount = 8;
 
