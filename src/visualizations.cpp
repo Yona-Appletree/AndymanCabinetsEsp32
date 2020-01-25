@@ -51,7 +51,7 @@ public:
 
 				cab->buffer[ledIndex] = colorFor(
 					time + ledFrac + cabFrac,
-					(1.0 / cab->ledCount) / 2
+					std::min(0.17, (1.0 / cab->ledCount) / 2)
 				);
 			}
 		}
@@ -187,7 +187,7 @@ extern std::vector<VisualizationEffect *> g_visualizationEffects = {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double VisualCommon::timeNormal() {
-	return double(g_uiState.time % 1500) / 1500;
+	return double(g_uiState.time % 3000) / 3000;
 }
 
 double VisualCommon::timeSlow() {

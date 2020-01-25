@@ -198,7 +198,7 @@ protected:
 	) override {
 		FastLED.setBrightness(32 * brightness);
 
-		auto time = double(g_uiState.time % 1000) / 1000;
+		auto time = double(g_uiState.time % 3000) / 3000;
 
 		int endLed = round((UI_LED_COUNT - 1) * g_uiState.speed);
 
@@ -210,7 +210,7 @@ protected:
 				1/16.0,
 				15/16.0
 			) * UI_LED_COUNT,
-			3,
+			4,
 			CRGB::Yellow,
 			1.7
 		);
@@ -273,9 +273,9 @@ void UIDisplay::update(
 
 	// Luminance Correction
 	for (auto & uiLed : g_uiLeds) {
-		uiLed.r = scale8_video(uiLed.r, uiLed.r);
-		uiLed.g = scale8_video(uiLed.g, uiLed.g);
-		uiLed.b = scale8_video(uiLed.b, uiLed.b);
+		uiLed.r = scale8(uiLed.r, uiLed.r);
+		uiLed.g = scale8(uiLed.g, uiLed.g);
+		uiLed.b = scale8(uiLed.b, uiLed.b);
 	}
 
 	FastLED.show();
@@ -489,7 +489,7 @@ void updateTime() {
 void readInputs() {
 	// Update Speed
 	double newSpeed = analogRead(UI_PIN_SPEED) / 4096.0;
-	if (abs(newSpeed - g_uiState.speed) > 0.05) {
+	if (abs(newSpeed - g_uiState.speed) > 0.03) {
 		g_uiState.speed = newSpeed;
 		Serial.printf("Speed: %f (%d)\n", newSpeed,  analogRead(UI_PIN_SPEED));
 		display.activate(display.speedDial);
@@ -497,7 +497,7 @@ void readInputs() {
 
 	// Update Brightness
 	double newBrightness = analogRead(UI_PIN_BRIGHTNESS) / 4096.0;
-	if (abs(newBrightness - g_uiState.brightness) > 0.05) {
+	if (abs(newBrightness - g_uiState.brightness) > 0.03) {
 		g_uiState.brightness = newBrightness;
 		Serial.printf("Brightness: %f (%d)\n", newBrightness, analogRead(UI_PIN_BRIGHTNESS));
 		display.activate(display.brightnessDial);
@@ -506,7 +506,7 @@ void readInputs() {
 
 void updateUiLeds() {
 	const int fadeInMs = 1000;
-	const int fadeOutMs = 2500;
+	const int fadeOutMs = 1500;
 
 	if (millis() > display.currentDisplayExpireMs) {
 		display.currentDisplay = & display.visualizationPreview;
