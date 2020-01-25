@@ -8,15 +8,6 @@
 #define CABINET_LED_COUNT 70
 
 extern std::vector<CabinetRing*> g_cabinetRings = {
-	// Preview
-	new CabinetRing {
-		.host = nullptr,
-		.cabinets = {
-			new CabinetInfo(7, TOP_RIGHT, true, 1),
-			new CabinetInfo(7, TOP_LEFT, true, 2)
-		}
-	},
-
 	// North Cabinets (8)
 	new CabinetRing {
 		.host = "192.168.1.10",

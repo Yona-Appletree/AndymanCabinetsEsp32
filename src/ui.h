@@ -38,4 +38,27 @@ extern UiState g_uiState;
 void uiSetup();
 void uiLoop();
 
+class UIDisplay {
+public:
+	uint8_t currentPriority;
+
+	UIDisplay(uint8_t defaultPriority, uint8_t increasedPriority);
+
+	void update();
+
+protected:
+	uint8_t defaultPriority;
+	uint8_t increasedPriority;
+	uint64_t restoreDefaultPriorityAtMs = 0;
+	uint64_t lastUpdateMs = millis();
+
+	virtual void render(
+		uint64_t deltaTime
+	) = 0;
+
+	void increasePriorityFor(
+		uint32_t durationMs
+	);
+};
+
 #endif //ANDYMANCABINETSESP32_UI_H

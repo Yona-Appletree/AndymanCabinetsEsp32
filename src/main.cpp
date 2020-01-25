@@ -45,7 +45,7 @@ void loop()
 	//Serial.printf("main: %dms\n", (int) duration);
 
 	if (duration < 30) {
-		FastLED.delay(30 - duration);
+		delay(30 - duration);
 	}
 }
 
