@@ -8,6 +8,8 @@ TaskHandle_t renderTask;
 
 volatile bool rendererStarted = false;
 
+const auto frameMs = 1000 / 30;
+
 void setup()
 {
 	Serial.begin(115200);
@@ -42,8 +44,8 @@ void loop()
 
 	auto duration = millis() - start;
 
-	if (duration < 33) {
-		FastLED.delay(33 - duration);
+	if (duration < frameMs) {
+		FastLED.delay(frameMs - duration);
 	}
 }
 
@@ -68,8 +70,8 @@ void core2loop(void * data) {
 
 		//Serial.printf("render ms: %d\n", (int) duration);
 
-		if (duration < 33) {
-			delay(33 - duration);
+		if (duration < frameMs) {
+			delay(frameMs - duration);
 		}
 	}
 }
