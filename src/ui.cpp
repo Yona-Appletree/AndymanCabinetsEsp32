@@ -3,6 +3,7 @@
 //
 
 #include "ui.h"
+#include "util.h"
 #include <FastLED.h>
 #include <EEPROM.h>
 
@@ -41,13 +42,40 @@ void readAndValidateState();
 // UI Displays
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class UIBrightnessDial : public UIDisplay {
+public:
+	const char * name() override {
+		return "Brightness Dial";
+	}
+
+protected:
+	void render(
+		uint64_t deltaTime,
+		double brightness
+	) override {
+		FastLED.setBrightness(32 * brightness);
+
+		double endLed = (UI_LED_COUNT) * g_uiState.brightness;
+		double endLedBrightness = endLed - int(endLed);
+
+		for (int i=0; i<UI_LED_COUNT; i++) {
+			if (i <= ceil(endLed)) {
+				g_uiLeds[i] = CRGB(
+					64 + ((i * 255) / (UI_LED_COUNT - 1)) / 2,
+					64 + ((i * 255) / (UI_LED_COUNT - 1)) / 3,
+					0
+				);
+			}
+
+			if (i == ceil(endLed)) {
+				g_uiLeds[i].nscale8_video(endLedBrightness);
+			}
+		}
+	}
+};
+
 class UIDisplayPreview : public UIDisplay {
 public:
-	UIDisplayPreview(
-		uint8_t defaultPriority,
-		uint8_t increasedPriority
-	) : UIDisplay(defaultPriority, increasedPriority) {}
-
 	CabinetRing previewRing {
 		.host = nullptr,
 		.cabinets = {
@@ -56,21 +84,25 @@ public:
 		}
 	};
 
+	const char * name() override {
+		return "Preview";
+	}
+
 protected:
-	void render(uint64_t deltaTime) override {
+	void render(
+		uint64_t deltaTime,
+		double brightness
+	) override {
 		auto pVisualizationProgram = g_visualizationPrograms[g_uiState.programMode % g_visualizationPrograms.size()];
 		auto pVisualizationEffect = g_visualizationEffects[g_uiState.effectMode % g_visualizationEffects.size()];
 
 		pVisualizationProgram->applyToRing(previewRing, deltaTime);
 		pVisualizationEffect->applyToRing(previewRing, deltaTime);
 
-		auto rawBright = dim8_video(255*g_uiState.brightness);
-		auto uiBright = rawBright / 4;
-
-		FastLED.setBrightness(uiBright == 0 ? (rawBright == 0 ? 0 : 1) : uiBright);
+		FastLED.setBrightness(255 * g_uiState.brightness / 8 * brightness);
 
 		// Start writing to the output leds offset by program mode to give the effect of a turning dial
-		int outputLedIndex = g_uiState.programMode + 1;
+		int outputLedIndex = UI_LED_COUNT + 1 + g_uiState.programMode - g_visualizationPrograms.size() / 2;
 
 		for (auto cab : previewRing.cabinets) {
 			for (int ledIndex = 0; ledIndex < cab->ledCount; ledIndex++) {
@@ -79,98 +111,154 @@ protected:
 
 			g_uiLeds[(outputLedIndex++) % UI_LED_COUNT] = CRGB::Black;
 		}
-
-		FastLED.show();
 	}
 };
 
 
-class UIDisplayDial : public UIDisplay {
+class UIPaletteDial : public UIDisplay {
 public:
-	UIDisplayDial(
-		uint8_t defaultPriority,
-		uint8_t increasedPriority
-	) : UIDisplay(defaultPriority, increasedPriority) {}
+	const char * name() override {
+		return "Palette Dial";
+	}
 
-	uint8_t value;
-	uint8_t maxValue;
-
-	bool progressMode = false;
-
-	CRGB activeColor = CRGB(0, 32, 0);
-	CRGB inactiveColor = CRGB(0, 0, 0);
-	CRGB marginColor = CRGB(4, 0, 0);
-
-	void displayProgress(
-		uint8_t value,
-		uint8_t maxValue,
-		bool progressMode
-	) {
-		this->value = value;
-		this->maxValue = maxValue;
-		this->progressMode = progressMode;
-		this->increasePriorityFor(1000);
+	uint32_t activationMs() override {
+		return 9000;
 	}
 
 protected:
-	void render(uint64_t deltaTime) override {
-		FastLED.setBrightness(255);
+	void render(
+		uint64_t deltaTime,
+		double brightness
+	) override {
+		FastLED.setBrightness(24 * brightness);
 
-		int ledsPerSection = UI_LED_COUNT / maxValue;
-		int ledIndex = 0;
-		for (int secIndex=0; secIndex < maxValue; secIndex++) {
-			for (int i=0; i<ledsPerSection; i++, ledIndex++) {
-				if (progressMode) {
-					if (secIndex <= value) {
-						g_uiLeds[ledIndex] = activeColor;
-						g_uiLeds[ledIndex].nscale8(std::max(8, (secIndex * 256) / maxValue));
-					} else {
-						g_uiLeds[ledIndex] = inactiveColor;
-					}
-				} else {
-					g_uiLeds[ledIndex] = (secIndex == value) ? activeColor : inactiveColor;
-				}
-			}
+		auto time = double(millis() % 4000) / 4000;
+
+		g_uiLeds[
+			(UI_LED_COUNT + g_uiState.colorMode - ColorModeCount / 2) % UI_LED_COUNT
+		] = CRGB::Yellow;
+
+		int ledIndex = (UI_LED_COUNT + ColorModeCount - ColorModeCount / 2) % UI_LED_COUNT + 1;
+
+		const int paletteLedCount = UI_LED_COUNT - ColorModeCount - 2;
+
+		for (int i=0; i < paletteLedCount; i++) {
+			g_uiLeds[ledIndex % UI_LED_COUNT] = colorFor(
+				(double(i) / (paletteLedCount - 1) / 4) + time,
+				(1.0 / (paletteLedCount - 1) / 4)
+			);
+			ledIndex ++;
 		}
-
-		for (; ledIndex<UI_LED_COUNT; ledIndex++) {
-			g_uiLeds[ledIndex] = marginColor;
-		}
-
-		FastLED.show();
 	}
 };
 
-UIDisplayDial g_uiDisplayProgress(100, 192);
-UIDisplayPreview g_uiDisplayPreview(128, 110);
 
-std::vector<UIDisplay *> g_uiDisplays = {
-	& g_uiDisplayPreview,
-	& g_uiDisplayProgress,
+class UISpeedDial : public UIDisplay {
+public:
+	const char * name() override {
+		return "Speed Dial";
+	}
+
+protected:
+
+	void bar(
+		double center,
+		double size,
+		const CRGB& color,
+		double multiplier
+	) {
+		double halfSize = size / 2;
+
+		int startLed = floor(center - halfSize);
+		int endLed = ceil(center + halfSize);
+
+		for (int i=startLed; i<endLed; i++) {
+			double distance = abs((i + .5) - center);
+			if (distance > UI_LED_COUNT - halfSize) {
+				distance = UI_LED_COUNT - distance;
+			}
+
+			if (distance < halfSize) {
+				double brightness = 1 - distance / halfSize;
+
+				CRGB& led = g_uiLeds[(i+UI_LED_COUNT) % UI_LED_COUNT];
+
+				led += CRGB(
+					std::min(255.0, color.r * brightness * multiplier),
+					std::min(255.0, color.g * brightness * multiplier),
+					std::min(255.0, color.b * brightness * multiplier)
+				);
+			}
+		}
+	}
+
+	void render(
+		uint64_t deltaTime,
+		double brightness
+	) override {
+		FastLED.setBrightness(32 * brightness);
+
+		auto time = double(g_uiState.time % 1000) / 1000;
+
+		int endLed = round((UI_LED_COUNT - 1) * g_uiState.speed);
+
+		bar(
+			mapd(
+				g_uiState.speed,
+				0,
+				1,
+				1/16.0,
+				15/16.0
+			) * UI_LED_COUNT,
+			3,
+			CRGB::Yellow,
+			1.7
+		);
+		bar(UI_LED_COUNT * time, 5, CRGB::Blue, 1.15);
+	}
 };
+
+struct {
+	UIPaletteDial paletteDial;
+	UIBrightnessDial brightnessDial;
+	UISpeedDial speedDial;
+	UIDisplayPreview visualizationPreview;
+
+	std::vector<UIDisplay *> displays = {
+		& visualizationPreview,
+		& paletteDial,
+		& brightnessDial,
+		& speedDial,
+	};
+
+	UIDisplay * currentDisplay = &visualizationPreview;
+	uint64_t currentDisplayExpireMs = 0;
+
+	void activate(UIDisplay& display) {
+		currentDisplay = &display;
+		if (&display == &visualizationPreview) {
+			// Set it far back in time to avoid fade in
+			currentDisplayExpireMs = 0;
+		} else {
+			currentDisplayExpireMs = millis() + display.activationMs();
+		}
+		//Serial.printf("Display \"%s\" for %dms\n", display.name(), display.activationMs());
+	}
+
+	bool isActive(UIDisplay& display) {
+		return currentDisplay == &display;
+	}
+} display;
 
 
 //////////////////////////////////////////////////////
 // Base Implementation
 
-
-UIDisplay::UIDisplay(uint8_t defaultPriority, uint8_t increasedPriority)
-	: defaultPriority(defaultPriority), increasedPriority(increasedPriority) {}
-
-void UIDisplay::increasePriorityFor(
-	uint32_t durationMs
+void UIDisplay::update(
+	double brightness
 ) {
-	restoreDefaultPriorityAtMs = millis() + durationMs;
-	currentPriority = increasedPriority;
-}
-
-void UIDisplay::update() {
 	auto deltaTime = millis() - lastUpdateMs;
 	lastUpdateMs = millis();
-
-	if (millis() > restoreDefaultPriorityAtMs) {
-		currentPriority = defaultPriority;
-	}
 
 	// Clear Display
 	for (auto & uiLed : g_uiLeds) {
@@ -179,7 +267,8 @@ void UIDisplay::update() {
 
 	// Render
 	render(
-		deltaTime
+		deltaTime,
+		brightness
 	);
 
 	// Luminance Correction
@@ -188,6 +277,12 @@ void UIDisplay::update() {
 		uiLed.g = scale8_video(uiLed.g, uiLed.g);
 		uiLed.b = scale8_video(uiLed.b, uiLed.b);
 	}
+
+	FastLED.show();
+}
+
+uint32_t UIDisplay::activationMs() {
+	return 4000;
 }
 
 
@@ -215,23 +310,27 @@ void IRAM_ATTR programRotaryIsr() {
 
 	if (a0 == 0 && a1 == 1 && b0 == 0 && b1 == 0) {
 		// Clockwise
-		if (g_uiState.programMode < g_visualizationPrograms.size() - 1)
+		if (g_uiState.programMode < g_visualizationPrograms.size() - 1) {
 			g_uiState.programMode = g_uiState.programMode + 1;
-		else
-			g_uiState.programMode = 0;
-		
-		Serial.printf("[UI] Next Program (%d): %s\n", g_uiState.programMode, g_visualizationPrograms[g_uiState.programMode]->name());
-		g_uiStateNeedsPersist = true;
+
+			Serial.printf("[UI] Next Program (%d): %s\n",
+			              g_uiState.programMode,
+			              g_visualizationPrograms[g_uiState.programMode]->name());
+			g_uiStateNeedsPersist = true;
+		}
 	} else if (a0 == 0 && a1 == 0 && b0 == 0 && b1 == 1) {
 		// Counterclockwise
-		if (g_uiState.programMode > 0)
+		if (g_uiState.programMode > 0) {
 			g_uiState.programMode = g_uiState.programMode - 1;
-		else
-			g_uiState.programMode = g_visualizationPrograms.size() - 1;
-		
-		Serial.printf("[UI] Prev Program (%d): %s\n", g_uiState.programMode, g_visualizationPrograms[g_uiState.programMode]->name());
-		g_uiStateNeedsPersist = true;
+
+			Serial.printf("[UI] Prev Program (%d): %s\n",
+			              g_uiState.programMode,
+			              g_visualizationPrograms[g_uiState.programMode]->name());
+			g_uiStateNeedsPersist = true;
+		}
 	}
+
+	display.activate(display.visualizationPreview);
 }
 
 void IRAM_ATTR programButtonIsr() {
@@ -243,7 +342,7 @@ void IRAM_ATTR programButtonIsr() {
 
 	Serial.printf("[UI] Next Effect (%d): %s\n", g_uiState.effectMode, g_visualizationEffects[g_uiState.effectMode]->name());
 
-	g_uiDisplayProgress.displayProgress(g_uiState.effectMode, g_visualizationEffects.size(), false);
+	//g_uiDisplayProgress.displayProgress(g_uiState.effectMode, g_visualizationEffects.size(), false);
 	g_uiStateNeedsPersist = true;
 }
 
@@ -257,32 +356,29 @@ void IRAM_ATTR colorRotaryIsr() {
 
 	if (a0 == 0 && a1 == 1 && b0 == 0 && b1 == 0) {
 		// Clockwise
-		if (g_uiState.colorMode < ColorModeCount - 1)
+		if (g_uiState.colorMode < ColorModeCount - 1) {
 			g_uiState.colorMode = static_cast<ColorMode>(g_uiState.colorMode + 1);
-		else
-			g_uiState.colorMode = static_cast<ColorMode>(0);
-		
-		Serial.printf("[UI] Next Color: %d\n", g_uiState.colorMode);
-		g_uiDisplayProgress.displayProgress(g_uiState.colorMode, ColorModeCount, false);
-		g_uiStateNeedsPersist = true;
+
+			Serial.printf("[UI] Next Color: %d\n", g_uiState.colorMode);
+			g_uiStateNeedsPersist = true;
+		}
 	} else if (a0 == 0 && a1 == 0 && b0 == 0 && b1 == 1) {
 		// Counterclockwise
-		if (g_uiState.colorMode > 0)
+		if (g_uiState.colorMode > 0) {
 			g_uiState.colorMode = static_cast<ColorMode>(g_uiState.colorMode - 1);
-		else
-			g_uiState.colorMode = static_cast<ColorMode>(ColorModeCount - 1);
-		
-		Serial.printf("[UI] Prev Color: %d\n", g_uiState.colorMode);
-		g_uiDisplayProgress.displayProgress(g_uiState.colorMode, ColorModeCount, false);
-		g_uiStateNeedsPersist = true;
+
+			Serial.printf("[UI] Prev Color: %d\n", g_uiState.colorMode);
+			g_uiStateNeedsPersist = true;
+		}
 	}
+
+	display.activate(display.paletteDial);
 }
 
 void IRAM_ATTR colorButtonIsr() {
 	g_uiState.colorMode = static_cast<ColorMode>(0);
 
-	Serial.printf("[UI] Color Reset\n");
-	g_uiStateNeedsPersist = true;
+	display.activate(display.visualizationPreview);
 }
 
 
@@ -304,6 +400,7 @@ void IRAM_ATTR colorButtonIsr() {
 void uiSetup() {
 	// Initialize the LEDs
 	CFastLED::addLeds<WS2812B, UI_PIN_LED, GRB>(g_uiLeds, UI_LED_COUNT);
+	FastLED.setCorrection(TypicalSMD5050);
 
 	EEPROM.begin(sizeof(g_uiState));
 	readAndValidateState();
@@ -395,7 +492,7 @@ void readInputs() {
 	if (abs(newSpeed - g_uiState.speed) > 0.05) {
 		g_uiState.speed = newSpeed;
 		Serial.printf("Speed: %f (%d)\n", newSpeed,  analogRead(UI_PIN_SPEED));
-		g_uiDisplayProgress.displayProgress(round(g_uiState.speed*15), 16, true);
+		display.activate(display.speedDial);
 	}
 
 	// Update Brightness
@@ -403,17 +500,30 @@ void readInputs() {
 	if (abs(newBrightness - g_uiState.brightness) > 0.05) {
 		g_uiState.brightness = newBrightness;
 		Serial.printf("Brightness: %f (%d)\n", newBrightness, analogRead(UI_PIN_BRIGHTNESS));
-		g_uiDisplayProgress.displayProgress(round(g_uiState.brightness*15), 16, true);
+		display.activate(display.brightnessDial);
 	}
 }
 
 void updateUiLeds() {
-	UIDisplay* highestPriorityDisplay = g_uiDisplays[0];
-	for (auto display : g_uiDisplays) {
-		if (display->currentPriority > highestPriorityDisplay->currentPriority) {
-			highestPriorityDisplay = display;
+	const int fadeInMs = 1000;
+	const int fadeOutMs = 2500;
+
+	if (millis() > display.currentDisplayExpireMs) {
+		display.currentDisplay = & display.visualizationPreview;
+	}
+
+	double brightness = 1.0;
+	if (display.currentDisplay != & display.visualizationPreview) {
+		auto remainingMs = display.currentDisplayExpireMs - millis();
+		if (remainingMs < fadeOutMs) {
+			brightness = double(remainingMs) / fadeOutMs;
+		}
+	} else {
+		auto durationMs = millis() - display.currentDisplayExpireMs;
+		if (durationMs < fadeInMs) {
+			brightness = double(durationMs) / fadeInMs;
 		}
 	}
 
-	highestPriorityDisplay->update();
+	display.currentDisplay->update(brightness);
 }

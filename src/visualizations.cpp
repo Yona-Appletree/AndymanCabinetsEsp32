@@ -3,6 +3,7 @@
 //
 
 #include "ui.h"
+#include "util.h"
 #include <FastLED.h>
 #include <noise.h>
 #include <map>
@@ -19,50 +20,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * All cabinets the same color.
- */
-class VisualizationAllSameColor : public VisualizationProgram {
-public:
-	const char *name() override {
-		return "All Same Color";
-	}
-
-	void applyToRing(const CabinetRing &ring, const uint64_t deltaTime) override {
-		double time = time3s();
-		auto color = colorFor(time);
-
-		for (auto cab : ring.cabinets) {
-			cab->fill(color);
-		}
-	}
-};
-
-/**
- * Each cabinet one single color.
- */
-class VisualizationEachCabSameColor : public VisualizationProgram {
-public:
-	const char *name() override {
-		return "Each Cabinet Same Color";
-	}
-
-	void applyToRing(const CabinetRing &ring, const uint64_t deltaTime) override {
-		double time = time3s();
-
-		for (int cabIndex = 0; cabIndex < ring.cabinets.size(); cabIndex++) {
-			auto cab = ring.cabinets[cabIndex];
-			auto cabFrac = double(cabIndex) / ring.cabinets.size();
-
-			for (int ledIndex = 0; ledIndex < cab->ledCount; ledIndex++) {
-				cab->buffer[ledIndex] = colorFor(
-					time + cabFrac
-				);
-			}
-		}
-	}
-};
-
-/**
  * Each cabinet fades through the palette, offset by a bit
  */
 class VisualizationEachCabGradient : public VisualizationProgram {
@@ -71,26 +28,30 @@ public:
 		return "Each Cabinet Gradient";
 	}
 
-	double zoomMultiplier;
+	double cabGradientMultiplier;
+	double ledGradientMultiplier;
 
-	explicit VisualizationEachCabGradient(
-		double zoomMultiplier
-	) {
-		this->zoomMultiplier = zoomMultiplier;
-	}
+	VisualizationEachCabGradient(
+		double cabGradientMultiplier,
+		double ledGradientMultiplier
+	) :
+		cabGradientMultiplier(cabGradientMultiplier),
+		ledGradientMultiplier(ledGradientMultiplier)
+	{}
 
 	void applyToRing(const CabinetRing &ring, const uint64_t deltaTime) override {
-		double time = time3s();
+		double time = timeNormal();
 
 		for (int cabIndex = 0; cabIndex < ring.cabinets.size(); cabIndex++) {
 			auto cab = ring.cabinets[cabIndex];
-			auto cabFrac = double(cabIndex) / ring.cabinets.size();
+			auto cabFrac = (double(cabIndex) / ring.cabinets.size()) * cabGradientMultiplier;
 
 			for (int ledIndex = 0; ledIndex < cab->ledCount; ledIndex++) {
-				auto ledFrac = (double(ledIndex) / cab->ledCount) * zoomMultiplier;
+				auto ledFrac = triangle(double(ledIndex) / cab->ledCount) * ledGradientMultiplier;
 
 				cab->buffer[ledIndex] = colorFor(
-					time + ledFrac + cabFrac
+					time + ledFrac + cabFrac,
+					(1.0 / cab->ledCount) / 2
 				);
 			}
 		}
@@ -107,7 +68,7 @@ public:
 	}
 
 	void applyToRing(const CabinetRing &ring, const uint64_t deltaTime) override {
-		auto time = time10s();
+		auto time = timeSlow();
 
 		for (int cabIndex = 0; cabIndex < ring.cabinets.size(); cabIndex++) {
 			auto cab = ring.cabinets[cabIndex];
@@ -131,10 +92,12 @@ public:
 };
 
 extern std::vector<VisualizationProgram *> g_visualizationPrograms = {
-	new VisualizationAllSameColor(),
-	new VisualizationEachCabSameColor(),
-	new VisualizationEachCabGradient(1),
-	new VisualizationEachCabGradient(.3),
+	new VisualizationEachCabGradient(.05, .01),
+	new VisualizationEachCabGradient(1.5, .04),
+	new VisualizationEachCabGradient(.3, .05),
+	new VisualizationEachCabGradient(.5, .5),
+	new VisualizationEachCabGradient(1.2, .5),
+	new VisualizationEachCabGradient(1.2, 1.2),
 	new VisualizationPerlinNoise()
 };
 
@@ -175,7 +138,7 @@ public:
 	uint64_t lastSparkMs = 0;
 
 	void applyToRing(const CabinetRing &ring, const uint64_t deltaTime) override {
-		double colorTime = time10s();
+		double colorTime = timeSlow();
 
 		int sparkCabIndex = -1;
 		if (! sparkMap.empty() && g_uiState.time - lastSparkMs > random(50, 100)) {
@@ -223,11 +186,11 @@ extern std::vector<VisualizationEffect *> g_visualizationEffects = {
 // Utilities
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double VisualCommon::time3s() {
-	return double(g_uiState.time % 3000) / 3000;
+double VisualCommon::timeNormal() {
+	return double(g_uiState.time % 1500) / 1500;
 }
 
-double VisualCommon::time10s() {
-	return double(g_uiState.time % 10000) / 10000;
+double VisualCommon::timeSlow() {
+	return double(g_uiState.time % 5000) / 5000;
 }
 

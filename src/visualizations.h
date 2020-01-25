@@ -12,8 +12,8 @@
 
 class VisualCommon {
 public:
-	double time3s();
-	double time10s();
+	double timeNormal();
+	double timeSlow();
 
 	virtual void applyToRing(const CabinetRing &ring, const uint64_t deltaTime) = 0;
 	virtual const char* name() = 0;

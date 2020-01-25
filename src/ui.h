@@ -40,20 +40,19 @@ void uiLoop();
 
 class UIDisplay {
 public:
-	uint8_t currentPriority;
+	void update(
+		double brightness
+	);
 
-	UIDisplay(uint8_t defaultPriority, uint8_t increasedPriority);
-
-	void update();
+	virtual const char * name() = 0;
+	virtual uint32_t activationMs();
 
 protected:
-	uint8_t defaultPriority;
-	uint8_t increasedPriority;
-	uint64_t restoreDefaultPriorityAtMs = 0;
 	uint64_t lastUpdateMs = millis();
 
 	virtual void render(
-		uint64_t deltaTime
+		uint64_t deltaTime,
+		double brightness
 	) = 0;
 
 	void increasePriorityFor(

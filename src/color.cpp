@@ -2,6 +2,7 @@
 // Created by Yona Appletree on 12/31/19.
 //
 
+#include "util.h"
 #include "color.h"
 #include "ui.h"
 #include "presetPalettes.h"
@@ -16,8 +17,7 @@ static CRGBPalette32* g_currentPalette = & staticPalette;
 
 void handleModeChange();
 void updatePalette();
-double triangle(double input);
-void nblendPaletteTowardPalette2( CRGBPalette32& current, CRGBPalette32& target);
+void nblendPaletteTowardPalette2(CRGBPalette32& current, CRGBPalette32& target);
 
 void updateRainbow();
 void updateSunset();
@@ -47,7 +47,7 @@ CRGB colorFor(double value) {
 }
 
 CRGB colorFor8(uint8_t value) {
-	return ColorFromPalette(* g_currentPalette, triwave8(value));
+	return ColorFromPalette(* g_currentPalette, value);
 }
 
 CRGB colorFor8(
@@ -62,7 +62,11 @@ CRGB colorFor8(
 	uint32_t g = 0;
 	uint32_t b = 0;
 
-	for (int i=center - width/2; i<=center + width/2; i++) {
+	int start = int(center) - width/2;
+	int end = int(center) + width/2;
+	if (end - start < width) start --;
+
+	for (int i=start; i<end; i++) {
 		auto c = colorFor8(i);
 		r += c.r;
 		g += c.g;
@@ -86,7 +90,7 @@ CRGB colorFor(
 // Start Functions
 
 void updateRainbow() {
-	staticPalette = RainbowColors_p;
+	staticPalette = niceRainbow;
 	g_currentPalette = & staticPalette;
 }
 
@@ -171,12 +175,4 @@ void nblendPaletteTowardPalette2(CRGBPalette32 &current, CRGBPalette32 &target) 
 			p1[i]--;
 		}
 	}
-}
-
-double triangle(double input) {
-	input = fmod(input, 1.0);
-
-	return input < 0.5
-	       ? input / 0.5
-	       : 1 - (input - 0.5) / 0.5;
 }

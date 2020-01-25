@@ -5,7 +5,7 @@
 #include "renderer.h"
 #include "ui.h"
 
-#define CABINET_LED_COUNT 70
+#define CABINET_LED_COUNT 10
 
 extern std::vector<CabinetRing*> g_cabinetRings = {
 	// North Cabinets (8)
@@ -159,6 +159,28 @@ void CabinetRing::begin() {
 	}
 }
 
+/**
+ * Borrowed From FastLED internal controller code. Basically computes a correction factor for various pixels and
+ * lighting environments.
+ */
+static CRGB computeAdjustment(uint8_t scale, const CRGB & colorCorrection, const CRGB & colorTemperature) {
+	CRGB adj(0,0,0);
+
+	if(scale > 0) {
+		for(uint8_t i = 0; i < 3; i++) {
+			uint8_t cc = colorCorrection.raw[i];
+			uint8_t ct = colorTemperature.raw[i];
+			if(cc > 0 && ct > 0) {
+				uint32_t work = (((uint32_t)cc)+1) * (((uint32_t)ct)+1) * scale;
+				work /= 0x10000L;
+				adj.raw[i] = work & 0xFF;
+			}
+		}
+	}
+
+	return adj;
+}
+
 void CabinetRing::send() {
 	if (host == nullptr) {
 		return;
@@ -171,30 +193,29 @@ void CabinetRing::send() {
 		maxLedCount = std::max(maxLedCount, cab->ledCount);
 	}
 
-	auto channelCount = maxLedCount * 3;
+	auto * tempBuffer = new CRGB[maxLedCount];
 
-	auto * tempBuffer = static_cast<uint8_t *>(malloc(channelCount));
+	auto correction = computeAdjustment(
+		brightness,
+		0xF0C8F0,
+		UncorrectedTemperature
+	);
 
-	for (int cabinetIndex=0; cabinetIndex<cabinets.size(); cabinetIndex++) {
-		auto cabinet = cabinets[cabinetIndex];
-
-		memcpy(tempBuffer, (uint8_t *) cabinet->buffer2, channelCount);
-
-		for (int i=0; i<channelCount; i++) {
-			tempBuffer[i] = scale8(tempBuffer[i], tempBuffer[i]);
-			tempBuffer[i] = scale8_video(tempBuffer[i], brightness);
+	for (auto cabinet : cabinets) {
+		for (int i=0; i<cabinet->ledCount; i++) {
+			tempBuffer[i] = cabinet->buffer[i].scale8(correction);
 		}
 
 		sender.set(
 			cabinet->universe - 1,
 			(uint8_t *) tempBuffer,
-			channelCount
+			cabinet->ledCount * 3
 		);
 
 		sender.send();
 	}
 
-	free(tempBuffer);
+	delete[] tempBuffer;
 }
 
 void CabinetRing::swapBuffers() {

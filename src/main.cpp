@@ -42,10 +42,8 @@ void loop()
 
 	auto duration = millis() - start;
 
-	//Serial.printf("main: %dms\n", (int) duration);
-
-	if (duration < 30) {
-		delay(30 - duration);
+	if (duration < 20) {
+		FastLED.delay(20 - duration);
 	}
 }
 
@@ -70,8 +68,8 @@ void core2loop(void * data) {
 
 		//Serial.printf("render ms: %d\n", (int) duration);
 
-		if (duration < 30) {
-			delay(30 - duration);
+		if (duration < 20) {
+			delay(20 - duration);
 		}
 	}
 }
