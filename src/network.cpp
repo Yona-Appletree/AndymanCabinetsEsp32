@@ -49,8 +49,17 @@ void networkSetup(){
 //
 //	WiFi.begin("AndyCabinetsMain", "playingwithlight");
 
+	Serial.println("ETH Starting...");
+
 	// Start the ethernet
 	ETH.begin();
+//	ETH.config(
+//		IPAddress(192, 168, 8, 5),
+//		IPAddress(192, 168, 8, 1),
+//		IPAddress(255, 255, 255, 0),
+//		IPAddress(192, 168, 8, 1),
+//		IPAddress(192, 168, 8, 1)
+//	);
 
 	// Bind HTTP handler
 	server.on("/", handleRoot);
