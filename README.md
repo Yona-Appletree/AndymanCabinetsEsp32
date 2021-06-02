@@ -1,5 +1,13 @@
 # Cabinet Controller
 
+## IP Addresses
+North Pixlite: 192.168.8.20
+South Pixlite: 192.168.8.21
+
+Router: 192.168.8.1
+South Bridge: 192.168.8.138
+
+
 ## Prerequisties
 
     brew install platformio

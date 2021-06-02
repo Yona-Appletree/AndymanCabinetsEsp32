@@ -5,31 +5,31 @@
 #include "renderer.h"
 #include "ui.h"
 
-#define CABINET_LED_COUNT 10
+#define CABINET_LED_COUNT 72
 
 extern std::vector<CabinetRing*> g_cabinetRings = {
 	// North Cabinets (8)
 	new CabinetRing {
-		.host = "192.168.1.10",
+		.host = "192.168.8.20",
 		.cabinets = {
-			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 1),
-			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 2),
-			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 3),
-			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 4),
-			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 5),
-			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 6),
-			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 7),
-			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 8),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 1),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, false, 2),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 3),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, false, 4),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 5),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 6),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, false, 7),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 8),
 		}
 	},
 
 	// South Cabinets (4)
 	new CabinetRing {
-		.host = "192.168.1.201",
+		.host = "192.168.8.21",
 		.cabinets = {
-			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 1),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, false, 1),
 			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 2),
-			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, true, 3),
+			new CabinetInfo(CABINET_LED_COUNT, TOP_RIGHT, false, 3),
 			new CabinetInfo(CABINET_LED_COUNT, TOP_LEFT, true, 4),
 		}
 	},

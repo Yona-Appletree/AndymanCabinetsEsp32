@@ -63,6 +63,17 @@ public:
  */
 class VisualizationPerlinNoise : public VisualizationProgram {
 public:
+	double scale;
+	double cabScale;
+
+	explicit VisualizationPerlinNoise(
+		double scale,
+		double cabScale
+	) :
+		scale(scale),
+		cabScale(cabScale)
+	{}
+
 	const char *name() override {
 		return "Each Cabinet Perlin Noise";
 	}
@@ -76,12 +87,13 @@ public:
 
 			for (int ledIndex = 0; ledIndex < cab->ledCount; ledIndex++) {
 				auto ledFrac = double(ledIndex) / cab->ledCount;
+				auto ledPos = cab->ledPos(ledIndex);
 
 				cab->buffer[ledIndex] = colorFor(
-					cos16(
+					sin16(
 						inoise16(
-							cabFrac * 256 * 256,
-							ledFrac * 128 * 256,
+							(cabFrac * 256 * cabScale) + (ledPos.y * 128 * scale),
+							(ledPos.y * 128 * scale),
 							double(g_uiState.time) * 24
 						) + (time * 65536)
 					) / 65536.0
@@ -94,11 +106,17 @@ public:
 extern std::vector<VisualizationProgram *> g_visualizationPrograms = {
 	new VisualizationEachCabGradient(.05, .01),
 	new VisualizationEachCabGradient(1.5, .04),
-	new VisualizationEachCabGradient(.3, .05),
-	new VisualizationEachCabGradient(.5, .5),
-	new VisualizationEachCabGradient(1.2, .5),
-	new VisualizationEachCabGradient(1.2, 1.2),
-	new VisualizationPerlinNoise()
+//	new VisualizationEachCabGradient(.3, .05),
+//	new VisualizationEachCabGradient(.5, .5),
+//	new VisualizationEachCabGradient(1.2, .5),
+//	new VisualizationEachCabGradient(1.2, 1.2),
+	new VisualizationPerlinNoise(40, 456),
+	new VisualizationPerlinNoise(100, 556),
+	new VisualizationPerlinNoise(200, 628),
+	new VisualizationPerlinNoise(400, 560)
+//	new VisualizationPerlinNoise(5000, 500),
+//	new VisualizationPerlinNoise(10000, 800),
+//	new VisualizationPerlinNoise(100000, 1500),
 };
 
 
@@ -191,6 +209,6 @@ double VisualCommon::timeNormal() {
 }
 
 double VisualCommon::timeSlow() {
-	return double(g_uiState.time % 5000) / 5000;
+	return double(g_uiState.time % 8000) / 8000;
 }
 

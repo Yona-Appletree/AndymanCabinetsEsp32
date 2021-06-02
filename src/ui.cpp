@@ -99,7 +99,7 @@ protected:
 		pVisualizationProgram->applyToRing(previewRing, deltaTime);
 		pVisualizationEffect->applyToRing(previewRing, deltaTime);
 
-		FastLED.setBrightness(255 * g_uiState.brightness / 8 * brightness);
+		FastLED.setBrightness(64 * g_uiState.brightness / 8 * brightness);
 
 		// Start writing to the output leds offset by program mode to give the effect of a turning dial
 		int outputLedIndex = UI_LED_COUNT + 1 + g_uiState.programMode - g_visualizationPrograms.size() / 2;
@@ -282,7 +282,7 @@ void UIDisplay::update(
 }
 
 uint32_t UIDisplay::activationMs() {
-	return 4000;
+	return 8000;
 }
 
 
