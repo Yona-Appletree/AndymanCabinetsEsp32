@@ -892,7 +892,7 @@ U 1 1 5E2ADF54
 P 7750 5750
 F 0 "SW2" H 7750 6117 50  0000 C CNN
 F 1 "Mode_Encoder" H 7750 6026 50  0000 C CNN
-F 2 "Rotary_Encoder:RotaryEncoder_Alps_EC12E-Switch_Vertical_H20mm_CircularMountingHoles" H 7600 5910 50  0001 C CNN
+F 2 "YonaFootprints:RotaryEncoder_Alps_EC12E-Switch_Vertical_H20mm_CircularMountingHoles_ReducedFootprint" H 7600 5910 50  0001 C CNN
 F 3 "~" H 7750 6010 50  0001 C CNN
 	1    7750 5750
 	1    0    0    -1  
@@ -1508,14 +1508,4 @@ Wire Wire Line
 	2450 6500 3500 6500
 Wire Wire Line
 	2450 6400 3500 6400
-Connection ~ 3500 6500
-Connection ~ 3500 6400
-Connection ~ 3500 6100
-Connection ~ 3500 5900
-Connection ~ 900  6100
-Connection ~ 900  6300
-Connection ~ 900  6400
-Connection ~ 900  6500
-Connection ~ 900  6600
-Connection ~ 900  5800
 $EndSCHEMATC
